@@ -2,35 +2,48 @@ import rasterio
 import numpy as np
 from rasterio.windows import Window
 from matplotlib import pyplot
+from pathlib import Path
 
 imageWidth = 224
 imageHeight = 224
+window_step = 200
 
+times = range(1,37)
 bands = ["GRN", "NIR"]
+
+data_dir = "data/deepcrop/tiles/X0071_Y0043/"
+data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif'
+
+out_dir = "data/prepared/"
+out_filename = '{x}_{y}_{band}.tif'
+
+Path(out_dir).mkdir(parents=True, exist_ok=True)
 
 for band in bands:
     print("Band:", band)
     #open file    
-    with rasterio.open(f'data/deepcrop/tiles/X0071_Y0043/2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif') as src:
+    file_path = data_dir+data_filename.format(band = band)
+    with rasterio.open(file_path) as src:
         print(src.count, src.width, src.height, src.crs) 
-        for time in range(1, src.count+1):
-            print("Time:", time)
-            for x in np.arange(0, src.width, 200):
-                for y in np.arange(0, src.height, 200):
-                    print("Reading Window:", x,y)
-                    window = Window(x,y,imageWidth, imageHeight)
-                    w = src.read(time, window=window)
 
-                    # write meta data    
-                    xform = rasterio.windows.transform(window, src.meta['transform'])    
-                    meta_d=src.meta.copy()    
-                    meta_d.update({"height": imageWidth,
-                                "width": imageHeight,
-                                "transform": xform})  
+        for x in np.arange(0, src.width, window_step):
+            for y in np.arange(0, src.height, window_step):              
+                
+                print("Reading Window:", x,y)
+                window = Window(x,y,imageWidth, imageHeight)
+                w = src.read(times, window=window)
 
-                    # # write output    
-                    # with rasterio.open(outfile, "w", **meta_d) as dest:                           
-                    #     dest.write_band(band, w)
+                # write meta data    
+                xform = rasterio.windows.transform(window, src.meta['transform'])    
+                meta_d=src.meta.copy()    
+                meta_d.update({"height": imageWidth,
+                            "width": imageHeight,
+                            "transform": xform})
+
+                outfile_path = out_dir+out_filename.format(x = int(x/window_step), y = int(y/window_step), band = band)
+                with rasterio.open(outfile_path, "w", **meta_d) as dest:
+                    dest.write_band(times, w)
+
 
 
   
