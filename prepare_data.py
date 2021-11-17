@@ -1,7 +1,6 @@
 import rasterio
 import numpy as np
 from rasterio.windows import Window
-from matplotlib import pyplot
 from pathlib import Path
 
 imageWidth = 224
@@ -15,7 +14,7 @@ data_dir = "data/deepcrop/tiles/X0071_Y0043/"
 data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif'
 
 out_dir = "data/prepared/"
-out_filename = '{x}_{y}_{band}.tif'
+out_filename = '{sample}_{band}.tif'
 
 Path(out_dir).mkdir(parents=True, exist_ok=True)
 
@@ -25,7 +24,8 @@ for band in bands:
     file_path = data_dir+data_filename.format(band = band)
     with rasterio.open(file_path) as src:
         print(src.count, src.width, src.height, src.crs) 
-
+        print(src.meta)
+        sample_i = 0
         for x in np.arange(0, src.width, window_step):
             for y in np.arange(0, src.height, window_step):              
                 
@@ -39,10 +39,13 @@ for band in bands:
                 meta_d.update({"height": imageWidth,
                             "width": imageHeight,
                             "transform": xform})
+                            
 
-                outfile_path = out_dir+out_filename.format(x = int(x/window_step), y = int(y/window_step), band = band)
-                with rasterio.open(outfile_path, "w", **meta_d) as dest:
+                outfile_path = out_dir+out_filename.format(sample= sample_i, band = band)
+                with rasterio.open(outfile_path, "w", band=band, **meta_d) as dest:
                     dest.write_band(times, w)
+
+                sample_i += 1
 
 
 
