@@ -14,16 +14,15 @@ t_stop = 37
 t_step = 1
 
 times = range(t_start,t_stop,t_step)
-bands = ["GRN", "NIR"]
+bands = ["GRN", "NIR", "RED"]
 
 data_dir = "data/deepcrop/tiles/X0071_Y0043/"
-data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff'
+data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif'
 
 out_dir = "data/prepared/"
 out_filename = '{sample}_{band}.tif'
 Path(out_dir).mkdir(parents=True, exist_ok=True)
 #empty array to store new window image ids
-ids = []
 
 for band in bands:
     print("Band:", band)
@@ -46,7 +45,7 @@ for band in bands:
                 meta_d.update({"height": imageWidth,
                             "width": imageHeight,
                             "transform": xform})
-                ids.append(out_filename.format(sample= sample_i, band = band))           
+          
                 outfile_path = out_dir+out_filename.format(sample= sample_i, band = band)
                 with rasterio.open(outfile_path, "w", band=band, **meta_d) as dest:
                     dest.write_band(times, w)
@@ -55,7 +54,7 @@ for band in bands:
 
 
 # Class labels
-file_path = 'data/deepcrop/tiles/X0071_Y0043/IACS_2018.tiff'
+file_path = 'data/deepcrop/tiles/X0071_Y0043/IACS_2018.tif'
 
 #open file
 print("\n\n")
@@ -64,7 +63,6 @@ with rasterio.open(file_path) as src:
     print(src.count, src.width, src.height, src.crs) 
     print(src.meta)
     #window stepping
-    sample_i = 0
     labels = []
 
     for x in np.arange(0, src.width, window_step):
@@ -73,15 +71,12 @@ with rasterio.open(file_path) as src:
             window = Window(x,y,imageWidth, imageHeight)
             w = src.read(1, window=window)
             labels.append(list(np.unique(w)))
+            # print(list(np.unique(w)))
 
-            print(list(np.unique(w)))
 
 
-#create entry for every image band
-copy = labels 
-for i in range(len(bands) - 1):
-    labels += copy
 
+ids = range(sample_i)
 print(len(labels))
 print(len(ids))
 
