@@ -27,7 +27,7 @@ class C3D(nn.Module):
         self.conv5b = nn.Conv3d(512, 512, kernel_size=(3, 3, 3), padding=(1, 1, 1))
         self.pool5 = nn.MaxPool3d(kernel_size=(2, 2, 2), stride=(2, 2, 2), padding=(0, 1, 1))
 
-        self.fc6 = nn.Linear(8192, 4096)
+        self.fc6 = nn.Linear(8192*8, 4096)
         self.fc7 = nn.Linear(4096, 4096)
         self.fc8 = nn.Linear(4096, labels)
 
@@ -56,14 +56,14 @@ class C3D(nn.Module):
         h = self.relu(self.conv5b(h))
         h = self.pool5(h)
 
-        h = h.view(-1, 8192)
+        h = h.view(-1, 8192*8)
 
         h = self.relu(self.fc6(h))
         h = self.dropout(h)
         h = self.relu(self.fc7(h))
         h = self.dropout(h)
 
-        logits = self.fc8(h)
+        logits = self.fc8(h) 
 
         probs = self.softmax(logits)
 
