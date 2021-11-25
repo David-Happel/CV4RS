@@ -17,7 +17,7 @@ times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 
 data_dir = "data/deepcrop/tiles/X0071_Y0043/"
-data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif'
+data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff'
 
 out_dir = "data/prepared/"
 out_filename = '{sample}_{band}.tif'
@@ -54,7 +54,7 @@ for band in bands:
 
 
 # Class labels
-file_path = 'data/deepcrop/tiles/X0071_Y0043/IACS_2018.tif'
+file_path = 'data/deepcrop/tiles/X0071_Y0043/IACS_2018.tiff'
 
 #open file
 print("\n\n")
@@ -83,7 +83,7 @@ print(len(ids))
 d = {'image_id': ids, 'labels': labels}
 df = pd.DataFrame(data=d)        
 print(df.head(n=5))
-print(df.loc[df['image_id'] == '0_NIR.tif'])
+print(df.loc[df['image_id'] == '0_NIR.tiff'])
 
 #image ids dataframe
 image_ids = df["image_id"].to_frame()

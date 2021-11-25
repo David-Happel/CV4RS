@@ -65,9 +65,9 @@ class C3D(nn.Module):
 
         logits = self.fc8(h) 
 
-        probs = self.softmax(logits)
+        #probs = self.softmax(logits)
 
-        return probs
+        return logits
 
 """
 References

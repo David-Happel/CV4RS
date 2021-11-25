@@ -14,57 +14,50 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader , TensorDataset
 
+from processdata import ProcessData
+
+#filenames 
+data_dir = "data/deepcrop/tiles/X0071_Y0043/"
+data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff'
+out_dir = "data/prepared/"
+
+
+#create band and times arrays
+t_start = 1
+t_stop = 37
+t_step = 1
+times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 
-data_dir = "data/prepared/"
+#prepare data
+dl = ProcessData(data_dir, data_filename, out_dir)
+#dl.prepare_data(times, bands)
 
-imageWidth = 224
-imageHeight = 224
-time_n = 36
+#create dataset
+data, labels = dl.create_dataset(t_samples=10)
 
-sample_n = 16
-
-data = np.empty((sample_n, len(bands), time_n, imageWidth, imageHeight))
-
-for i, file in enumerate(os.listdir(data_dir)):
-    if i > sample_n: break
-    regex = re.search('(\d*)_(.*).tif', file)
-    if not regex : continue
-    sample = int(regex.group(1))
-    band = regex.group(2)
-    band_i = bands.index(band)
-    if band_i < 0: print("band not found!")
-    with rasterio.open(os.path.join(data_dir, file)) as src:
-        data[sample, band_i] = src.read()
-
-# print(data.shape)
-# pyplot.imshow(data[10,1,5,:,:] , cmap='pink')
-# pyplot.show()
-        
-
-label_df = pd.read_csv(data_dir+"labels.csv",index_col= 0)
-unique_labels = list(filter(lambda c: c not in ["image_id"], label_df.columns))
-labels = label_df[unique_labels].to_numpy()[:sample_n]
-print(unique_labels)
-# print(labels[:5])
-
-c = c3d.C3D(bands=3, labels=len(unique_labels))
-c = c.float()
-criterion = nn.BCEWithLogitsLoss()
-optimizer = optim.SGD(c.parameters(), lr=0.001, momentum=0.9)
-
-# sample_indices = np.array(range(sample_n))
-# batches = np.array_split(sample_indices, 3)
 data = torch.from_numpy(data).float()
 labels = torch.from_numpy(labels).float()
 
+
 print(data.shape, labels.shape)
 
+
+#model selection
+c = c3d.C3D(bands=3, labels=len(labels[1]))
+c = c.float()
+
+criterion = nn.BCEWithLogitsLoss()
+optimizer = optim.SGD(c.parameters(), lr=0.001, momentum=0.9)
+
+
+#Dataset Creation
 dataset = TensorDataset(data , labels)
 batches = DataLoader(dataset , batch_size = 5, shuffle=True)
 
 for epoch in range(2):  # loop over the dataset multiple times
     running_loss = 0.0
+    #Feed the whole batch in and optimise over these samples
     for i, batch in enumerate(batches, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = batch
@@ -81,9 +74,11 @@ for epoch in range(2):  # loop over the dataset multiple times
 
         # print statistics
         running_loss += loss.item()
+        print(running_loss)
         if i % 5 == 4:    # print every 4 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 5))
             running_loss = 0.0
+
 
 print('Finished Training')
