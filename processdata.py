@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
 
 class ProcessData:
     def __init__(self, data_dir, data_filename, out_dir):
@@ -121,12 +122,28 @@ class ProcessData:
         #Sample Selection 
         labels = label_df[unique_labels].to_numpy()[:t_samples]
         data = data[0:t_samples, :]
-    
         return data, labels
+    
 
-    """
-    def train_test_val_split(self, data, labels): 
+    def train_test_val_split(self, data, labels, test_split, val_split): 
+    
+        X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=test_split, random_state=42)
+        X_train, X_val, y_train, y_val= train_test_split(X_train, y_train, test_size=val_split, random_state=42)
+
+
+        return X_train, X_test, X_val, y_train, y_test, y_val
+
+
+
+
+
         
 
-    def data_labels(data): 
-    """
+        
+
+
+
+        
+
+    #def data_labels(data): 
+    
