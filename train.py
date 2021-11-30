@@ -16,24 +16,24 @@ from torch.utils.data import DataLoader , TensorDataset
 
 from processdata import ProcessData
 
-#filenames 
-data_dir = "data/deepcrop/tiles/X0071_Y0043/"
-data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff'
-out_dir = "data/prepared/"
+# Change if need to process the data
+process_data = False
 
 #create band and times arrays
 t_start = 1
 t_stop = 37
-t_step = 1
+t_step = 6
 times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 
 #prepare data
-dl = ProcessData(data_dir, data_filename, out_dir)
-#dl.prepare_data(times, bands)
+dl = ProcessData(bands = bands, times=times)
+
+if process_data:
+    dl.process_tile("X0071_Y0043")
 
 #create dataset
-data, labels = dl.create_dataset(t_samples=20 )
+data, labels = dl.read_dataset()
 
 #Splitting data
 X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)

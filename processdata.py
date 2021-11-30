@@ -17,28 +17,23 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
 class ProcessData:
-    def __init__(self, data_dir, data_filename, out_dir):
+    def __init__(self, data_dir = "data/deepcrop/tiles/", out_dir="data/prepared/", bands=["GRN", "NIR", "RED"], times=range(1,37,1)):
         self.data_dir = data_dir
-        self.data_filename = data_filename
         self.out_dir = out_dir
-        self.sample_n = 225
         self.imageWidth = 224
         self.imageHeight = 224
         self.window_step = 200
 
-        t_start = 1
-        t_stop = 37
-        t_step = 1
-        self.times = range(t_start,t_stop,t_step)
-        self.bands = ["GRN", "NIR", "RED"]
-    
-
-    def prepare_data(self, times, bands): 
-        self.bands = bands
         self.times = times
-        imageWidth = 224
-        imageHeight = 224
-        window_step = 200
+        self.bands = bands
+
+    def process_tile(self, tile, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif'):
+        bands = self.bands
+        times = self.times
+        imageWidth = self.imageWidth
+        imageHeight = self.imageHeight
+        window_step = self.window_step
+
         out_filename = '{sample}_{band}.tif'
         Path(self.out_dir).mkdir(parents=True, exist_ok=True)
         #empty array to store new window image ids
@@ -46,7 +41,8 @@ class ProcessData:
         for band in self.bands:
             print("Band:", band)
             #open file    
-            file_path = self.data_dir+self.data_filename.format(band = band)
+            file_path = self.data_dir+tile+"/"+data_filename.format(band = band)
+            print("processing: ", file_path)
             with rasterio.open(file_path) as src:
                 print(src.count, src.width, src.height, src.crs) 
                 print(src.meta)
@@ -70,13 +66,12 @@ class ProcessData:
                             dest.write_band(times, w)
 
                         sample_i += 1
+        
         # Class labels
-        file_path = 'data/deepcrop/tiles/X0071_Y0043/IACS_2018.tiff'
-
-        #open file
         print("\n\n")
         print("Class labels")
-        with rasterio.open(file_path) as src:
+        label_file = self.data_dir + tile+"/" + label_filename
+        with rasterio.open(label_file) as src:
             print(src.count, src.width, src.height, src.crs) 
             print(src.meta)
             #window stepping
@@ -90,6 +85,8 @@ class ProcessData:
                   
 
         ids = range(sample_i)
+        print(len(ids), len(labels))
+        
         d = {'image_id': ids, 'labels': labels}
         df = pd.DataFrame(data=d)        
       
@@ -99,13 +96,15 @@ class ProcessData:
         mlb = MultiLabelBinarizer()
         df1 = pd.DataFrame(mlb.fit_transform(df['labels']),columns=[0, 10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 91, 92, 100, 120, 140, 181, 182])
         df1 = image_ids.join(df1)
-        df1.to_csv(self.out_dir + "labels.csv", index=True)
+        df1.to_csv(self.out_dir + "labels.csv", index=True)      
 
 
-    def create_dataset(self, t_samples): 
-        data = np.empty((self.sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
+    def read_dataset(self, t_samples=False):
+        label_df = pd.read_csv(self.out_dir+"labels.csv",index_col= 0)
+        sample_n = label_df.shape[0]
+
+        data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
         for i, file in enumerate(os.listdir(self.out_dir)):
-            if i > self.sample_n: break
             regex = re.search('(\d*)_(.*).tif', file)
             if not regex : continue
             sample = int(regex.group(1))
@@ -113,13 +112,13 @@ class ProcessData:
             band_i = self.bands.index(band)
             if band_i < 0: print("band not found!")
             with rasterio.open(os.path.join(self.out_dir, file)) as src:
-                data[sample, band_i] = src.read()
+                data[sample, band_i] = src.read()[self.times, :, :]
         
-
-        label_df = pd.read_csv(self.out_dir+"labels.csv",index_col= 0)
+        #labels
         unique_labels = list(filter(lambda c: c not in ["image_id"], label_df.columns))
-        
         #Sample Selection 
+        if not t_samples: t_samples = sample_n
+
         labels = label_df[unique_labels].to_numpy()[:t_samples]
         data = data[0:t_samples, :]
         return data, labels
