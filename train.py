@@ -21,7 +21,6 @@ data_dir = "data/deepcrop/tiles/X0071_Y0043/"
 data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff'
 out_dir = "data/prepared/"
 
-
 #create band and times arrays
 t_start = 1
 t_stop = 37
@@ -34,14 +33,16 @@ dl = ProcessData(data_dir, data_filename, out_dir)
 #dl.prepare_data(times, bands)
 
 #create dataset
-data, labels = dl.create_dataset(t_samples=10)
+data, labels = dl.create_dataset(t_samples=20 )
+
+#Splitting data
+X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
+
 
 data = torch.from_numpy(data).float()
 labels = torch.from_numpy(labels).float()
 
-
 print(data.shape, labels.shape)
-
 
 #model selection
 c = c3d.C3D(bands=3, labels=len(labels[1]))
@@ -79,6 +80,5 @@ for epoch in range(2):  # loop over the dataset multiple times
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 5))
             running_loss = 0.0
-
 
 print('Finished Training')
