@@ -75,3 +75,13 @@ References
 [1] Tran, Du, et al. "Learning spatiotemporal features with 3d convolutional networks." 
 Proceedings of the IEEE international conference on computer vision. 2015.
 """
+
+def reset_weights(m):
+  '''
+    Try resetting model weights to avoid
+    weight leakage.
+  '''
+  for layer in m.children():
+   if hasattr(layer, 'reset_parameters'):
+    print(f'Reset trainable parameters of layer = {layer}')
+    layer.reset_parameters()

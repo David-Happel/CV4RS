@@ -133,16 +133,5 @@ class ProcessData:
         return X_train, X_test, X_val, y_train, y_test, y_val
 
 
-
-
-
-        
-
-        
-
-
-
-        
-
     #def data_labels(data): 
     
