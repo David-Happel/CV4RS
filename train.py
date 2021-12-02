@@ -13,11 +13,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader , TensorDataset
+from torchsummary import summary
+from baseline_simple import C3D as bl
 
 from processdata import ProcessData
 
 # Change if need to process the data
-process_data = False
+process_data = True
 
 #create band and times arrays
 t_start = 1
@@ -39,19 +41,24 @@ data, labels = dl.read_dataset()
 X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
 
 
+# data format (sample, band, time, height, width)
 data = torch.from_numpy(data).float()
 labels = torch.from_numpy(labels).float()
 
 print(data.shape, labels.shape)
 
 #model selection
-c = c3d.C3D(bands=3, labels=len(labels[1]))
+c = bl(bands=3, labels=len(labels[1]))
 c = c.float()
+
+#model summary
+summary(c, (3, 6, 224, 224))
+
 
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.SGD(c.parameters(), lr=0.001, momentum=0.9)
 
-
+"""
 #Dataset Creation
 dataset = TensorDataset(data , labels)
 batches = DataLoader(dataset , batch_size = 5, shuffle=True)
@@ -82,3 +89,4 @@ for epoch in range(2):  # loop over the dataset multiple times
             running_loss = 0.0
 
 print('Finished Training')
+"""
