@@ -39,39 +39,28 @@ class C3D(nn.Module):
 
         h = self.relu(self.conv1(x))
         h = self.pool1(h)
-        print('layer 1')
 
         h = self.relu(self.conv2(h))
         h = self.pool2(h)
-        print('layer 2')
-
+       
         h = self.relu(self.conv3(h))
         h = self.pool3(h)
-        print('layer 3')
-        print(np.shape(h))
 
         h = self.relu(self.conv4(h))
         h = self.pool4(h)
-        print('layer 4')
-        print(np.shape(h))
 
         h = self.relu(self.conv5(h))
         h = self.pool5(h)
-        print('layer 5')
-        print(np.shape(h))
 
         h = t.flatten(h, start_dim = 1)
-        print(np.shape(h))
 
         h = self.relu(self.fc6(h))
         h = self.dropout(h)
         h = self.relu(self.fc7(h))
         h = self.dropout(h)
-        print('layer: FC')
 
         logits = self.fc8(h) 
-        print(np.shape(logits))
-
+      
         return logits
 
 

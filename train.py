@@ -37,7 +37,7 @@ if process_data:
     dl.process_tile("X0071_Y0043")
 
 #create dataset
-data, labels = dl.read_dataset(t_samples=10)
+data, labels = dl.read_dataset()
 
 #Splitting data
 # X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
