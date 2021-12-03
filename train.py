@@ -18,6 +18,7 @@ from torchsummary import summary
 
 from baseline_simple import C3D as bl
 from processdata import ProcessData
+from helper import reset_weights
 
 # Change if need to process the data
 process_data = False
@@ -74,8 +75,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
 
 
     #model selection
-    model = c3d.C3D(bands=3, labels=len(labels[1])).float()
-    model.apply(c3d.reset_weights)
+    model = bl(bands=3, labels=len(labels[1])).float()
+    model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
