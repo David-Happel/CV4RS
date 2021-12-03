@@ -130,3 +130,6 @@ dmypy.json
 
 /data
 .vscode/settings.json
+.DS_Store
+
+/models/*
