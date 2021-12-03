@@ -14,7 +14,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader , TensorDataset, SubsetRandomSampler
 from sklearn.model_selection import KFold
+from torchsummary import summary
 
+from baseline_simple import C3D as bl
 from processdata import ProcessData
 
 # Change if need to process the data
@@ -40,10 +42,12 @@ data, labels = dl.read_dataset(t_samples=10)
 # X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
 
 
+# data format (sample, band, time, height, width)
 data = torch.from_numpy(data).float()
 labels = torch.from_numpy(labels).float()
 
 print(data.shape, labels.shape)
+
 #Dataset Creation
 dataset = TensorDataset(data , labels)
 
