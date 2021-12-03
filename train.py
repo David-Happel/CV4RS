@@ -21,7 +21,7 @@ from processdata import ProcessData
 from helper import reset_weights
 
 # Change if need to process the data
-process_data = False
+process_data = True
 
 #create band and times arrays
 t_start = 1
@@ -34,23 +34,28 @@ bands = ["GRN", "NIR", "RED"]
 dl = ProcessData(bands = bands, times=times)
 
 if process_data:
-    dl.process_tile("X0071_Y0043")
+    #process training data 
+    dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
+
+    #process test data 
+    dl.process_tile("X0071_Y0043", out_dir='data/prepared/test/')
 
 #create dataset
-data, labels = dl.read_dataset()
+train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/')
+test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
 
 #Splitting data
 # X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
 
 
-# data format (sample, band, time, height, width)
-data = torch.from_numpy(data).float()
-labels = torch.from_numpy(labels).float()
+# train_data format (sample, band, time, height, width)
+train_data = torch.from_numpy(train_data).float()
+train_labels = torch.from_numpy(train_labels).float()
 
-print(data.shape, labels.shape)
+print(train_data.shape, train_labels.shape)
 
 #Dataset Creation
-dataset = TensorDataset(data , labels)
+train_ds = TensorDataset(train_data , train_labels)
 
 criterion = nn.BCEWithLogitsLoss()
 
@@ -59,7 +64,7 @@ k_folds = 5
 
 kfold = KFold(n_splits=k_folds, shuffle=True)
 results = dict()
-for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
+for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
     print("fold:", fold)
     # Sample elements randomly from a given list of ids, no replacement.
     train_subsampler = SubsetRandomSampler(train_ids)
@@ -67,15 +72,15 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
 
     # Define data loaders for training and testing data in this fold
     train_batches = DataLoader(
-                      dataset, 
+                      train_ds, 
                       batch_size=2, sampler=train_subsampler)
     test_batches = DataLoader(
-                      dataset,
+                      train_ds,
                       batch_size=2, sampler=test_subsampler)
 
 
     #model selection
-    model = bl(bands=3, labels=len(labels[1])).float()
+    model = bl(bands=3, labels=len(train_labels[1])).float()
     model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -146,3 +151,8 @@ for key, value in results.items():
     print(f'Fold {key}: {value} %')
     sum += value
 print(f'Average: {sum/len(results.items())} %')
+
+
+
+#TEST EVALUATION
+## do work on test set
