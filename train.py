@@ -58,7 +58,9 @@ n_epochs = 1
 k_folds = 5
 
 kfold = KFold(n_splits=k_folds, shuffle=True)
-results = dict()
+val_acc = dict()
+val_loss = dict()
+
 for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
     print("fold:", fold)
     # Sample elements randomly from a given list of ids, no replacement.
@@ -68,10 +70,10 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
     # Define data loaders for training and testing data in this fold
     train_batches = DataLoader(
                       dataset, 
-                      batch_size=2, sampler=train_subsampler)
+                      batch_size=10, sampler=train_subsampler)
     test_batches = DataLoader(
                       dataset,
-                      batch_size=2, sampler=test_subsampler)
+                      batch_size=10, sampler=test_subsampler)
 
 
     #model selection
@@ -133,16 +135,25 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
             total += targets.size(0)
             correct += (predicted == targets).sum().item()
 
+            loss = criterion(outputs, targets)
+
             # Print accuracy
             print('Accuracy for fold %d: %d %%' % (fold, 100.0 * correct / total))
             print('--------------------------------')
-            results[fold] = 100.0 * (correct / total) / len(labels[1])
+            val_acc[fold] = 100.0 * (correct / total) / len(labels[1])
+            val_loss[fold] = loss
 
 # Print fold results
 print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
-print('--------------------------------')
+print('Loss----------------------------')
 sum = 0.0
-for key, value in results.items():
+for key, value in val_loss.items():
     print(f'Fold {key}: {value} %')
     sum += value
-print(f'Average: {sum/len(results.items())} %')
+print(f'Average: {sum/len(val_acc.items())} %')
+print('Accuracy----------------------------')
+sum = 0.0
+for key, value in val_acc.items():
+    print(f'Fold {key}: {value} %')
+    sum += value
+print(f'Average: {sum/len(val_acc.items())} %')
