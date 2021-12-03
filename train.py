@@ -53,6 +53,7 @@ n_epochs = 1
 k_folds = 5
 
 kfold = KFold(n_splits=k_folds, shuffle=True)
+results = dict()
 for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
     print("fold:", fold)
     # Sample elements randomly from a given list of ids, no replacement.
@@ -122,14 +123,15 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
             outputs = model(inputs)
 
             # Set total and correct
-            _, predicted = torch.max(outputs.data, 1)
+            predicted = outputs.data.int()
+            print(predicted)
             total += targets.size(0)
             correct += (predicted == targets).sum().item()
 
             # Print accuracy
             print('Accuracy for fold %d: %d %%' % (fold, 100.0 * correct / total))
             print('--------------------------------')
-            results[fold] = 100.0 * (correct / total)
+            results[fold] = 100.0 * (correct / total) / len(labels[1])
 
 # Print fold results
 print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
