@@ -19,7 +19,7 @@ from baseline_simple import C3D as bl
 from processdata import ProcessData
 
 # Change if need to process the data
-process_data = True
+process_data = False
 
 #create band and times arrays
 t_start = 1
@@ -58,11 +58,11 @@ summary(c, (3, 6, 224, 224))
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.SGD(c.parameters(), lr=0.001, momentum=0.9)
 
-"""
+
 #Dataset Creation
 dataset = TensorDataset(data , labels)
 batches = DataLoader(dataset , batch_size = 5, shuffle=True)
-
+"""
 for epoch in range(2):  # loop over the dataset multiple times
     running_loss = 0.0
     #Feed the whole batch in and optimise over these samples
@@ -83,7 +83,7 @@ for epoch in range(2):  # loop over the dataset multiple times
         # print statistics
         running_loss += loss.item()
         print(running_loss)
-        if i % 5 == 4:    # print every 4 mini-batches
+        if i % 5 == 0:    # print every 4 mini-batches
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / 5))
             running_loss = 0.0
