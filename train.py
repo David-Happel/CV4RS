@@ -20,6 +20,13 @@ from baseline_simple import C3D as bl
 from processdata import ProcessData
 from helper import reset_weights
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+if torch.cuda.is_available():
+    print(f'\nUsing gpu {torch.cuda.current_device()}')
+else:
+    print(f'\nUsing cpu')
+
 # Change if need to process the data
 process_data = False
 
@@ -37,10 +44,7 @@ if process_data:
     dl.process_tile("X0071_Y0043")
 
 #create dataset
-data, labels = dl.read_dataset()
-
-#Splitting data
-# X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
+data, labels = dl.read_dataset(t_samples=10)
 
 
 # data format (sample, band, time, height, width)
@@ -77,7 +81,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
 
 
     #model selection
-    model = bl(bands=3, labels=len(labels[1])).float()
+    model = bl(bands=3, labels=len(labels[1])).float().to(device)
+    print(summary(model, (3, 6, 224, 224)))
     model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -88,6 +93,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
         for i, batch in enumerate(train_batches, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = batch
+            inputs.to(device)
+            labels.to(device)
             print(inputs.shape)
 
             # zero the parameter gradients
@@ -114,7 +121,7 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
     print('Starting testing')
 
     # Saving the model
-    save_path = f'./models/model-fold-{fold}.pth'
+    save_path = f'./models/saved/model-fold-{fold}.pth'
     torch.save(model.state_dict(), save_path)
 
     # Evaluationfor this fold
@@ -125,6 +132,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
         for i, data in enumerate(test_batches, 0):
             # Get inputs
             inputs, targets = data
+            inputs.to(device)
+            targets.to(device)
 
             # Generate outputs
             outputs = model(inputs)
