@@ -17,9 +17,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
 class ProcessData:
-    def __init__(self, data_dir = "data/deepcrop/tiles/", out_dir="data/prepared/", bands=["GRN", "NIR", "RED"], times=range(1,37,1)):
+    def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(1,37,1)):
         self.data_dir = data_dir
-        self.out_dir = out_dir
         self.imageWidth = 224
         self.imageHeight = 224
         self.window_step = 200
@@ -27,7 +26,7 @@ class ProcessData:
         self.times = times
         self.bands = bands
 
-    def process_tile(self, tile, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif'):
+    def process_tile(self, tile, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif', out_dir = 'data/prepared/'):
         bands = self.bands
         times = self.times
         imageWidth = self.imageWidth
@@ -35,7 +34,7 @@ class ProcessData:
         window_step = self.window_step
 
         out_filename = '{sample}_{band}.tif'
-        Path(self.out_dir).mkdir(parents=True, exist_ok=True)
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
         #empty array to store new window image ids
 
         for band in self.bands:
@@ -61,7 +60,7 @@ class ProcessData:
                                     "width": imageHeight,
                                     "transform": xform})
                 
-                        outfile_path = self.out_dir+out_filename.format(sample= sample_i, band = band)
+                        outfile_path = out_dir+out_filename.format(sample= sample_i, band = band)
                         with rasterio.open(outfile_path, "w", band=band, **meta_d) as dest:
                             dest.write_band(times, w)
 
@@ -96,31 +95,35 @@ class ProcessData:
         mlb = MultiLabelBinarizer()
         df1 = pd.DataFrame(mlb.fit_transform(df['labels']),columns=[0, 10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 91, 92, 100, 120, 140, 181, 182])
         df1 = image_ids.join(df1)
-        df1.to_csv(self.out_dir + "labels.csv", index=True)      
+        df1.to_csv(out_dir + "labels.csv", index=True)      
 
 
-    def read_dataset(self, t_samples=False):
-        label_df = pd.read_csv(self.out_dir+"labels.csv",index_col= 0)
+    def read_dataset(self,  out_dir, t_samples=False):
+        label_df = pd.read_csv(out_dir+"/labels.csv",index_col= 0)
         sample_n = label_df.shape[0]
 
         data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
-        for i, file in enumerate(os.listdir(self.out_dir)):
+        for i, file in enumerate(os.listdir(out_dir)):
             regex = re.search('(\d*)_(.*).tif', file)
             if not regex : continue
             sample = int(regex.group(1))
             band = regex.group(2)
             band_i = self.bands.index(band)
             if band_i < 0: print("band not found!")
-            with rasterio.open(os.path.join(self.out_dir, file)) as src:
+            with rasterio.open(os.path.join(out_dir, file)) as src:
                 data[sample, band_i] = src.read()[self.times, :, :]
         
         #labels
         unique_labels = list(filter(lambda c: c not in ["image_id"], label_df.columns))
-        #Sample Selection 
+        #Sample Selection
         if not t_samples: t_samples = sample_n
 
         labels = label_df[unique_labels].to_numpy()[:t_samples]
         data = data[0:t_samples, :]
+
+        data = torch.from_numpy(data).float()
+        labels = torch.from_numpy(labels).float()
+
         return data, labels
     
 
