@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:tesla:2
 #SBATCH --mem=50G
-#SBATCH --partition=gpu
+#SBATCH --partition=standard
 
 source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 module load nvidia/cuda/10.0
