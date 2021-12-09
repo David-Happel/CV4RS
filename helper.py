@@ -18,7 +18,8 @@ def reset_weights(m):
   '''
   for layer in m.children():
    if hasattr(layer, 'reset_parameters'):
-    print(f'Reset trainable parameters of layer = {layer}')
+
+    # print(f'Reset trainable parameters of layer = {layer}')
     layer.reset_parameters()
 
 def get_labels(): 
@@ -61,3 +62,4 @@ def hamming_loss(y_true, y_pred):
     hl_den = np.prod(y_true.shape)
     
     return hl_num/hl_den
+

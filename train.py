@@ -21,6 +21,16 @@ from processdata import ProcessData
 from helper import reset_weights
 from helper import get_labels
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+if torch.cuda.is_available():
+    print(f'\nUsing gpu {torch.cuda.current_device()}')
+else:
+    print(f'\nUsing cpu')
+
+# Change if need to process the data
+process_data = False
+
 
 #create band and times arrays
 t_start = 1
@@ -52,9 +62,6 @@ print(np.unique(train_labels))
 train_ds = TensorDataset(train_data , train_labels)
 test_ds = TensorDataset(test_data , test_labels)
 
-
-
-
 #TRAINING
 criterion = nn.BCEWithLogitsLoss()
 
@@ -79,9 +86,9 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
                       train_ds,
                       batch_size=10, sampler=test_subsampler)
 
-
     #model selection
-    model = bl(bands=len(bands), labels=len(labels))
+
+    model = bl(bands=len(bands), labels=len(labels)).to(device)
     model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -92,6 +99,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
         for i, batch in enumerate(train_batches, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = batch
+            inputs.to(device)
+            labels.to(device)
             print(inputs.shape)
 
             # zero the parameter gradients
@@ -118,7 +127,7 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
     print('Starting testing')
 
     # Saving the model
-    save_path = f'./models/model-fold-{fold}.pth'
+    save_path = f'./models/saved/model-fold-{fold}.pth'
     torch.save(model.state_dict(), save_path)
 
     # Evaluationfor this fold
@@ -129,6 +138,8 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
         for i, data in enumerate(test_batches, 0):
             # Get inputs
             inputs, targets = data
+            inputs.to(device)
+            targets.to(device)
 
             # Generate outputs
             outputs = model(inputs)
