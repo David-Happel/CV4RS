@@ -8,7 +8,7 @@ class C3D(nn.Module):
     The C3D network as described in [1].
     """
 
-    def __init__(self, bands=3, labels=19):
+    def __init__(self, bands=3, labels=24):
         super(C3D, self).__init__()
 
         self.conv1 = nn.Conv3d(bands, 32, kernel_size=(3, 3, 3), padding=(1, 1, 1))

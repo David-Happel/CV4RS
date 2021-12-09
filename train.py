@@ -19,9 +19,8 @@ from torchsummary import summary
 from baseline_simple import C3D as bl
 from processdata import ProcessData
 from helper import reset_weights
+from helper import get_labels
 
-# Change if need to process the data
-process_data = False
 
 #create band and times arrays
 t_start = 1
@@ -29,29 +28,34 @@ t_stop = 37
 t_step = 6
 times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
+labels, label_names = get_labels()
 
-#prepare data
+#PREPARE DATA 
 dl = ProcessData(bands = bands, times=times)
 
+# Change if need to re-process the data
+process_data = False
+
 if process_data:
-    dl.process_tile("X0071_Y0043")
+    #process training data 
+    dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
+    #process test data 
+    dl.process_tile("X0071_Y0043", out_dir='data/prepared/test/')
 
 #create dataset
-data, labels = dl.read_dataset()
+#data format (sample, band, time, height, width)
 
-#Splitting data
-# X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
+train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/')
+test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
+print(np.unique(train_labels))
+#converting to tensor datasets
+train_ds = TensorDataset(train_data , train_labels)
+test_ds = TensorDataset(test_data , test_labels)
 
 
-# data format (sample, band, time, height, width)
-data = torch.from_numpy(data).float()
-labels = torch.from_numpy(labels).float()
 
-print(data.shape, labels.shape)
 
-#Dataset Creation
-dataset = TensorDataset(data , labels)
-
+#TRAINING
 criterion = nn.BCEWithLogitsLoss()
 
 n_epochs = 1
@@ -60,8 +64,8 @@ k_folds = 5
 kfold = KFold(n_splits=k_folds, shuffle=True)
 val_acc = dict()
 val_loss = dict()
+for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
 
-for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
     print("fold:", fold)
     # Sample elements randomly from a given list of ids, no replacement.
     train_subsampler = SubsetRandomSampler(train_ids)
@@ -69,15 +73,15 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
 
     # Define data loaders for training and testing data in this fold
     train_batches = DataLoader(
-                      dataset, 
+                      train_ds, 
                       batch_size=10, sampler=train_subsampler)
     test_batches = DataLoader(
-                      dataset,
+                      train_ds,
                       batch_size=10, sampler=test_subsampler)
 
 
     #model selection
-    model = bl(bands=3, labels=len(labels[1])).float()
+    model = bl(bands=len(bands), labels=len(labels))
     model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -156,4 +160,8 @@ sum = 0.0
 for key, value in val_acc.items():
     print(f'Fold {key}: {value} %')
     sum += value
+
 print(f'Average: {sum/len(val_acc.items())} %')
+#TEST EVALUATION
+## do work on test set
+
