@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/log.out
+#SBATCH -o /home/users/d/davidhappel/CV4RS/log.out
 #SBATCH -J test-distributed-training
-#SBATCH --ntasks=2
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --gres=gpu:tesla:2
 #SBATCH --mem=50G
