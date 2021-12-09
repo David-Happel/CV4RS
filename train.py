@@ -19,9 +19,8 @@ from torchsummary import summary
 from baseline_simple import C3D as bl
 from processdata import ProcessData
 from helper import reset_weights
+from helper import get_labels
 
-# Change if need to process the data
-process_data = True
 
 #create band and times arrays
 t_start = 1
@@ -29,34 +28,34 @@ t_stop = 37
 t_step = 6
 times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
+labels, label_names = get_labels()
 
-#prepare data
+#PREPARE DATA 
 dl = ProcessData(bands = bands, times=times)
+
+# Change if need to re-process the data
+process_data = False
 
 if process_data:
     #process training data 
     dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
-
     #process test data 
     dl.process_tile("X0071_Y0043", out_dir='data/prepared/test/')
 
 #create dataset
+#data format (sample, band, time, height, width)
+
 train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/')
 test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
-
-#Splitting data
-# X_train, X_test, X_val, y_train, y_test, y_val = dl.train_test_val_split(data, labels, 0.2, 0.1)
-
-
-# train_data format (sample, band, time, height, width)
-train_data = torch.from_numpy(train_data).float()
-train_labels = torch.from_numpy(train_labels).float()
-
-print(train_data.shape, train_labels.shape)
-
-#Dataset Creation
+print(np.unique(train_labels))
+#converting to tensor datasets
 train_ds = TensorDataset(train_data , train_labels)
+test_ds = TensorDataset(test_data , test_labels)
 
+
+
+
+#TRAINING
 criterion = nn.BCEWithLogitsLoss()
 
 n_epochs = 1
@@ -80,7 +79,7 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
 
 
     #model selection
-    model = bl(bands=3, labels=len(train_labels[1])).float()
+    model = bl(bands=len(bands), labels=len(labels))
     model.apply(reset_weights)
 
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)

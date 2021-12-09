@@ -99,7 +99,7 @@ class ProcessData:
 
 
     def read_dataset(self,  out_dir, t_samples=False):
-        label_df = pd.read_csv(out_dir+"labels.csv",index_col= 0)
+        label_df = pd.read_csv(out_dir+"/labels.csv",index_col= 0)
         sample_n = label_df.shape[0]
 
         data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
@@ -120,6 +120,10 @@ class ProcessData:
 
         labels = label_df[unique_labels].to_numpy()[:t_samples]
         data = data[0:t_samples, :]
+
+        data = torch.from_numpy(data).float()
+        labels = torch.from_numpy(labels).float()
+
         return data, labels
     
 
