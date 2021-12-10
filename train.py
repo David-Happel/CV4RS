@@ -115,6 +115,7 @@ def main():
                     test_score["accuracy"],
                     test_score["f1"],                                                        
                     end='\r'))
+            #TODO: Check if epoch is better than last and save model if so.
             
         # Process is complete.
         print('Training process has finished. Saving trained model.')
@@ -134,6 +135,12 @@ def main():
 
     f1_sum = sum(map(lambda fold: fold["f1"],val_scores))
     print(f'Average f1: {f1_sum/len(val_scores)}')
+
+    #TEST EVALUATION
+    ## #TODO  work on test set
+
+    # test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
+    # test_ds = TensorDataset(test_data , test_labels)
 
 
 
@@ -188,6 +195,7 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     # F1 score for the batch
     # f1 = f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'), average = None)
     f1=0
+    #TODO: Replace with standardised function to compute scores
     return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
 
 
@@ -222,6 +230,7 @@ def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_te
     # F1 score for the batch
     # f1 = f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'), average = None)
     f1=0
+    #TODO: Replace with standardised function to compute scores
     return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
 
 if __name__ == "__main__":
@@ -229,8 +238,3 @@ if __name__ == "__main__":
 
 
 
-#TEST EVALUATION
-## #TODO  work on test set
-
-# test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
-# test_ds = TensorDataset(test_data , test_labels)
