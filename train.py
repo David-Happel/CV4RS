@@ -8,29 +8,125 @@ import os
 import re
 import pandas as pd
 import c3d
-import torch
+import torch as t
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader , TensorDataset, SubsetRandomSampler
-from sklearn.model_selection import KFold
 from torchsummary import summary
+
+from sklearn.model_selection import KFold
+from sklearn.metrics import f1_score, accuracy_score
+
 
 from baseline_simple import C3D as bl
 from processdata import ProcessData
-from helper import reset_weights
-from helper import get_labels
+from helper import reset_weights, get_labels
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-if torch.cuda.is_available():
-    print(f'\nUsing gpu {torch.cuda.current_device()}')
+def main():
+    print("main")
+
+
+### Training Functions
+
+# train the model
+def train(model, batches, device="cpu", optimizer = None, criterion = None):
+    model.train()
+    
+    # for correct labels
+    correct = 0 
+    samples_n = 0
+
+    for batch_i, batch in enumerate(batches):
+        print('Batch: {}/{}'.format(batch_i+1, len(batches)))
+        
+        # batch is a list of 10 [inputs, labels]  -> e.g. len(labels) = 10
+        inputs, labels = batch
+        inputs, labels = inputs.to(device), labels.to(device)
+        samples_n += inputs.shape[0]
+        
+        # improve params. for the batch
+        optimizer.zero_grad()
+        
+        # forward + backward + optimize  for the batch
+        # outputs =  logits, probs ) probabilities from sigmoid layer
+        outputs, probs = model(inputs)
+        #print('outputs', outputs)
+        #print('probs', probs)
+        
+        # compute loss using logits
+        loss = criterion(outputs, labels)
+            
+        # do backprop. for the batch
+        loss.backward()
+
+        # update step for the batch
+        optimizer.step()
+            
+        # predicted labels for F1 score
+        predicted = t.round(probs).to(device)
+        #print('predicted:', predicted)
+        
+        # corretly predicted labels
+        correct += (predicted == labels).sum().item()
+        #print(correct)
+    
+    
+    #accuracy
+    accuracy = 100 * correct / (len(labels[0]) * samples_n)
+    
+    # F1 score for the batch
+    # f1 = f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'), average = None)
+    f1=0
+    return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
+
+
+def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
+    model.eval()
+
+    correct = 0
+    samples_n = 0
+    
+    with t.no_grad():
+        for batch_i, batch in enumerate(batches):
+            
+            inputs, labels = batch
+            inputs, labels = inputs.to(device), labels.to(device)
+            samples_n += inputs.shape[0]
+            
+            # feed val. data through model
+            outputs, probs = model(inputs)
+            
+            # loss
+            loss = criterion(outputs, labels)
+            
+            # predicted labels
+            predicted = t.round(probs).to(device)
+
+            # number of correctly predicted image labels
+            correct += (predicted == labels).sum().item()
+                
+    #accuracy
+    accuracy = 100 * correct / (len(labels[0]) * samples_n)
+
+    # F1 score for the batch
+    # f1 = f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'), average = None)
+    f1=0
+    return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
+
+
+
+#### MAIN Program
+device = t.device('cuda' if t.cuda.is_available() else 'cpu')
+
+if t.cuda.is_available():
+    print(f'\nUsing gpu {t.cuda.current_device()}')
 else:
     print(f'\nUsing cpu')
 
 # Change if need to process the data
 process_data = False
-
 
 #create band and times arrays
 t_start = 1
@@ -56,21 +152,23 @@ if process_data:
 #data format (sample, band, time, height, width)
 
 train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/')
-test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
-print(np.unique(train_labels))
 #converting to tensor datasets
 train_ds = TensorDataset(train_data , train_labels)
-test_ds = TensorDataset(test_data , test_labels)
+
+labels_n = train_labels.shape[1]
+print("Labels: ", labels_n)
+
 
 #TRAINING
 criterion = nn.BCEWithLogitsLoss()
 
-n_epochs = 1
+epochs = 2
 k_folds = 5
 
 kfold = KFold(n_splits=k_folds, shuffle=True)
-val_acc = dict()
-val_loss = dict()
+
+train_scores = np.array([])
+val_scores =  np.array([])
 for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
 
     print("fold:", fold)
@@ -81,98 +179,63 @@ for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
     # Define data loaders for training and testing data in this fold
     train_batches = DataLoader(
                       train_ds, 
-                      batch_size=10, sampler=train_subsampler)
+                      batch_size=5, sampler=train_subsampler)
     test_batches = DataLoader(
                       train_ds,
-                      batch_size=10, sampler=test_subsampler)
+                      batch_size=5, sampler=test_subsampler)
 
     #model selection
 
-    model = bl(bands=len(bands), labels=len(labels)).to(device)
-    model.apply(reset_weights)
+    model = bl(bands=len(bands), labels=labels_n).to(device)
+    # model.apply(reset_weights)
 
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
-    for epoch in range(n_epochs):  # loop over the dataset multiple times
-        running_loss = 0.0
-        #Feed the whole batch in and optimise over these samples
-        for i, batch in enumerate(train_batches, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = batch
-            inputs.to(device)
-            labels.to(device)
-            print(inputs.shape)
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            # print statistics
-            running_loss += loss.item()
-            print(running_loss)
-            if i % 5 == 4:    # print every 4 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 5))
-                running_loss = 0.0
-
+    for epoch in range(epochs):  # loop over the dataset multiple times
+        # TRAIN EPOCH
+        train_score = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
+        train_scores = np.append(train_scores, [train_score])
+        print('Train Epoch: {}/{} \tLoss: {:.8f} \tAccuracy: {}/{} ({:.4f}%), F1: {:.4f} \n'.format(
+                epoch + 1, epochs,  # epoch / epochs
+                train_score["loss"], # loss for that epoch
+                train_score["correct"], labels_n * len(train_ids),
+                train_score["accuracy"],
+                train_score["f1"],                                                      
+                end='\r'))
+        
+        # TEST EPOCH
+        test_score = test(model, test_batches, device=device, criterion=criterion)
+        val_scores = np.append(val_scores, [test_score])
+        print('Validation Epoch: {}/{} \tLoss: {:.8f} \tAccuracy: {}/{} ({:.4f}%), F1: {:.4f} \n'.format(
+                epoch + 1, epochs,  # epoch / epochs
+                test_score["loss"], # loss for that epoch
+                test_score["correct"], labels_n * len(test_ids),
+                test_score["accuracy"],
+                test_score["f1"],                                                        
+                end='\r'))
+        
     # Process is complete.
     print('Training process has finished. Saving trained model.')
 
-    # Print about testing
-    print('Starting testing')
-
     # Saving the model
     save_path = f'./models/saved/model-fold-{fold}.pth'
-    torch.save(model.state_dict(), save_path)
+    t.save(model.state_dict(), save_path)
 
-    # Evaluationfor this fold
-    correct, total = 0, 0
-    with torch.no_grad():
-
-        # Iterate over the test data and generate predictions
-        for i, data in enumerate(test_batches, 0):
-            # Get inputs
-            inputs, targets = data
-            inputs.to(device)
-            targets.to(device)
-
-            # Generate outputs
-            outputs = model(inputs)
-
-            # Set total and correct
-            predicted = outputs.data.int()
-            print(predicted)
-            total += targets.size(0)
-            correct += (predicted == targets).sum().item()
-
-            loss = criterion(outputs, targets)
-
-            # Print accuracy
-            print('Accuracy for fold %d: %d %%' % (fold, 100.0 * correct / total))
-            print('--------------------------------')
-            val_acc[fold] = 100.0 * (correct / total) / len(labels[1])
-            val_loss[fold] = loss
 
 # Print fold results
 print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
-print('Loss----------------------------')
-sum = 0.0
-for key, value in val_loss.items():
-    print(f'Fold {key}: {value} %')
-    sum += value
-print(f'Average: {sum/len(val_acc.items())} %')
-print('Accuracy----------------------------')
-sum = 0.0
-for key, value in val_acc.items():
-    print(f'Fold {key}: {value} %')
-    sum += value
+loss_sum = sum(map(lambda fold: fold["loss"],val_scores))
+print(f'Average Loss: {loss_sum/len(val_scores)}')
 
-print(f'Average: {sum/len(val_acc.items())} %')
+acc_sum = sum(map(lambda fold: fold["accuracy"],val_scores))
+print(f'Average Accuracy: {acc_sum/len(val_scores)}')
+
+f1_sum = sum(map(lambda fold: fold["f1"],val_scores))
+print(f'Average f1: {f1_sum/len(val_scores)}')
 #TEST EVALUATION
 ## do work on test set
 
+# test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
+# test_ds = TensorDataset(test_data , test_labels)
