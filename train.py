@@ -1,23 +1,14 @@
 from enum import unique
-import rasterio
 import numpy as np
-from rasterio.windows import Window
-from matplotlib import pyplot
-from pathlib import Path
-import os
-import re
-import pandas as pd
-import c3d
 import torch as t
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DataLoader , TensorDataset, SubsetRandomSampler
+from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
 from torchsummary import summary
 
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
-
 
 from baseline_simple import C3D as bl
 from processdata import ProcessData
