@@ -39,7 +39,7 @@ class ProcessData:
         for band in self.bands:
             print("Band:", band)
             #open file    
-            file_path = self.data_dir+tile+"/"+data_filename.format(band = band)
+            file_path = os.getcwd()+"/"+self.data_dir+tile+"/"+data_filename.format(band = band)
             print("processing: ", file_path)
             with rasterio.open(file_path) as src:
                 print(src.count, src.width, src.height, src.crs) 
@@ -68,7 +68,7 @@ class ProcessData:
         # Class labels
         print("\n\n")
         print("Class labels")
-        label_file = self.data_dir + tile+"/" + label_filename
+        label_file = os.getcwd()+"/"+ self.data_dir + tile+"/" + label_filename
         with rasterio.open(label_file) as src:
             print(src.count, src.width, src.height, src.crs) 
             print(src.meta)
@@ -98,11 +98,11 @@ class ProcessData:
 
 
     def read_dataset(self,  out_dir, t_samples=False):
-        label_df = pd.read_csv(out_dir+"/labels.csv",index_col= 0)
+        label_df = pd.read_csv(os.getcwd()+"/"+out_dir+"/labels.csv",index_col= 0)
         sample_n = label_df.shape[0]
 
         data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
-        for i, file in enumerate(os.listdir(out_dir)):
+        for i, file in enumerate(os.listdir(os.getcwd()+"/"+out_dir)):
             regex = re.search('(\d*)_(.*).tif', file)
             if not regex : continue
             sample = int(regex.group(1))
