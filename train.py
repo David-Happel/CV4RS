@@ -70,7 +70,7 @@ def main():
     #TRAINING
     criterion = nn.BCEWithLogitsLoss()
 
-    epochs = 2
+    epochs = 100
     k_folds = 5
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
