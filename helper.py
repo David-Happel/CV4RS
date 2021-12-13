@@ -1,7 +1,9 @@
 
 from sklearn.metrics import classification_report
 import numpy as np
+import report
 
+print = report.log
 
 def output_size(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0): 
     
@@ -26,9 +28,6 @@ def get_labels():
   label_names = ['No class', 'Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
                   'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Grapevine', 'Strawberry', 'Asparagus', 'Onion', 'Hops', 'Orchard', 'Carrot', 'Other leafy Vegetables']
   labels = [0, 10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 110, 120, 130, 140, 150, 160, 181, 182]
-
-  print(len(label_names))
-  print(len(labels))
   return labels, label_names
 
 

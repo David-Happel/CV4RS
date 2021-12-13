@@ -14,6 +14,9 @@ from sklearn.metrics import f1_score, accuracy_score
 from baseline_simple import C3D as bl
 from processdata import ProcessData
 from helper import reset_weights, get_labels
+import report
+
+print = report.log
 
 ### CONFIG
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
@@ -24,7 +27,7 @@ else:
     print(f'\nUsing cpu')
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-print("Working dir:", os.getcwd())
+print("Working dir: " + os.getcwd())
 
 # Change if need to process the data
 process_data = False
@@ -61,7 +64,7 @@ def main():
     train_ds = TensorDataset(train_data , train_labels)
 
     labels_n = train_labels.shape[1]
-    print("Labels: ", labels_n)
+    print("Labels: " + str(labels_n))
 
 
     #TRAINING
@@ -76,7 +79,7 @@ def main():
     val_scores =  np.array([])
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
 
-        print("fold:", fold)
+        print("fold: "+ str(fold))
         # Sample elements randomly from a given list of ids, no replacement.
         train_subsampler = SubsetRandomSampler(train_ids)
         test_subsampler = SubsetRandomSampler(test_ids)
@@ -126,7 +129,7 @@ def main():
         print('Training process has finished. Saving trained model.')
 
         # Saving the model
-        save_path = f'./models/saved/model-fold-{fold}.pth'
+        save_path = f'{report.report_dir}/saved_model/model-fold-{fold}.pth'
         t.save(model.state_dict(), save_path)
 
 
