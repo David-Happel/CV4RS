@@ -1,4 +1,5 @@
 from enum import unique
+import os
 import numpy as np
 import torch as t
 import torch.nn as nn
@@ -21,6 +22,9 @@ if t.cuda.is_available():
     print(f'\nUsing gpu {t.cuda.current_device()}')
 else:
     print(f'\nUsing cpu')
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+print("Working dir:", os.getcwd())
 
 # Change if need to process the data
 process_data = False
