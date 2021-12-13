@@ -3,7 +3,6 @@ from enum import unique
 import rasterio
 import numpy as np
 from rasterio.windows import Window
-from matplotlib import pyplot
 from pathlib import Path
 import os
 import re
