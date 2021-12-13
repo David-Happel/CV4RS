@@ -193,7 +193,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         correct += (predicted == labels).sum().item()
         #print(correct)
 
-        f1 += f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'))
+        # f1 += f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'))
+        
     
     
     #accuracy
@@ -202,7 +203,6 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     
     # F1 score for the batch
     
-    # f1=0
     #TODO: Replace with standardised function to compute scores
     return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
 
