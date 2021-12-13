@@ -1,7 +1,7 @@
 rasterio
 numpy
 matplotlib
-torch
+torch==1.7.0+cu101
 pandas
 scikit-learn
 torchsummary
