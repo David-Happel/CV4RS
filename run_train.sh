@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH -o /home/users/d/davidhappel/CV4RS/log.out
+#SBATCH --chdir=/home/users/d/davidhappel/CV4RS
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
