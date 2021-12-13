@@ -13,7 +13,7 @@ echo "Loading venv..."
 source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 
 echo "Loading cuda..."
-module load nvidia/cuda/11.2
+module load nvidia/cuda/10.1
 
 echo "Executing..."
 python3 train.py
