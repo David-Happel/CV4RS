@@ -37,7 +37,8 @@ times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
-t_samples = 10
+#Restriction of samples to take
+t_samples = None
 
 # Change if need to re-process the data
 process_data = False
