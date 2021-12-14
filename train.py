@@ -13,7 +13,7 @@ from sklearn.metrics import f1_score, accuracy_score
 
 from baseline_simple import C3D as bl
 from processdata import ProcessData
-from helper import reset_weights, get_labels
+from helper import reset_weights, get_labels, evaluation
 import report
 
 print = report.log
@@ -41,7 +41,7 @@ bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
 #Restriction of samples to take
-t_samples = None
+t_samples = 10
 
 # Change if need to re-process the data
 process_data = False
@@ -70,7 +70,7 @@ def main():
     #TRAINING
     criterion = nn.BCEWithLogitsLoss()
 
-    epochs = 100
+    epochs = 2
     k_folds = 5
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
@@ -79,7 +79,7 @@ def main():
     val_scores =  np.array([])
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
 
-        print("fold: "+ str(fold))
+        print(f'======= FOLD: {fold+1} ==================================')
         # Sample elements randomly from a given list of ids, no replacement.
         train_subsampler = SubsetRandomSampler(train_ids)
         test_subsampler = SubsetRandomSampler(test_ids)
@@ -102,34 +102,23 @@ def main():
 
 
         for epoch in range(epochs):  # loop over the dataset multiple times
+            print(f'---- EPOCH: {epoch+1} -------------------------------')
             # TRAIN EPOCH
             train_score = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
             train_scores = np.append(train_scores, [train_score])
-            print('Train Epoch: {}/{} \tLoss: {:.8f} \tAccuracy: {}/{} ({:.4f}%), F1: {} \n'.format(
-                    epoch + 1, epochs,  # epoch / epochs
-                    train_score["loss"], # loss for that epoch
-                    train_score["correct"], labels_n * len(train_ids),
-                    train_score["accuracy"],
-                    train_score["f1"],                                                      
-                    end='\r'))
+            print(train_score)
             
             # TEST EPOCH
             test_score = test(model, test_batches, device=device, criterion=criterion)
             val_scores = np.append(val_scores, [test_score])
-            print('Validation Epoch: {}/{} \tLoss: {:.8f} \tAccuracy: {}/{} ({:.4f}%), F1: {} \n'.format(
-                    epoch + 1, epochs,  # epoch / epochs
-                    test_score["loss"], # loss for that epoch
-                    test_score["correct"], labels_n * len(test_ids),
-                    test_score["accuracy"],
-                    test_score["f1"],                                                        
-                    end='\r'))
+            print(train_score)
             #TODO: Check if epoch is better than last and save model if so.
             
         # Process is complete.
         print('Training process has finished. Saving trained model.')
 
         # Saving the model
-        save_path = f'{report.report_dir}/saved_model/model-fold-{fold}.pth'
+        save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
         t.save(model.state_dict(), save_path)
 
 
@@ -138,10 +127,7 @@ def main():
     loss_sum = sum(map(lambda fold: fold["loss"],val_scores))
     print(f'Average Loss: {loss_sum/len(val_scores)}')
 
-    acc_sum = sum(map(lambda fold: fold["accuracy"],val_scores))
-    print(f'Average Accuracy: {acc_sum/len(val_scores)}')
-
-    f1_sum = sum(map(lambda fold: fold["f1"],val_scores))
+    f1_sum = sum(map(lambda fold: fold['weighted avg']["f1-score"],val_scores))
     print(f'Average f1: {f1_sum/len(val_scores)}')
 
     #TEST EVALUATION
@@ -157,11 +143,11 @@ def main():
 # train the model
 def train(model, batches, device="cpu", optimizer = None, criterion = None):
     model.train()
-    
-    # for correct labels
-    correct = 0
-    f1 = 0
-    samples_n = 0
+
+    avg_loss = 0
+    # TODO: fix for actual label count
+    y_pred = np.empty((0, 19))
+    y_true = np.empty((0, 19))
 
     for batch_i, batch in enumerate(batches):
         print('Batch: {}/{}'.format(batch_i+1, len(batches)))
@@ -169,7 +155,6 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         # batch is a list of 10 [inputs, labels]  -> e.g. len(labels) = 10
         inputs, labels = batch
         inputs, labels = inputs.to(device), labels.to(device)
-        samples_n += inputs.shape[0]
         
         # improve params. for the batch
         optimizer.zero_grad()
@@ -192,37 +177,30 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         # predicted labels for F1 score
         predicted = t.round(probs).to(device)
         #print('predicted:', predicted)
-        
-        # corretly predicted labels
-        correct += (predicted == labels).sum().item()
-        #print(correct)
 
-        # f1 += f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'))
+        avg_loss += loss.item()
+
+        y_pred =  np.append(y_pred, predicted.detach().to('cpu'), axis=0)
+        y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
         
-    
-    
-    #accuracy
-    f1 = f1 / len(batches)
-    accuracy = 100 * correct / (len(labels[0]) * samples_n)
-    
-    # F1 score for the batch
-    
-    #TODO: Replace with standardised function to compute scores
-    return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
+    res = evaluation(y_pred, y_true)
+    res["loss"] = avg_loss / len(batches)
+    return res
 
 
 def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
     model.eval()
 
-    correct = 0
-    samples_n = 0
+    avg_loss = 0
+        # TODO: fix for actual label count
+    y_pred = np.empty((0, 19))
+    y_true = np.empty((0, 19))
     
     with t.no_grad():
         for batch_i, batch in enumerate(batches):
             
             inputs, labels = batch
             inputs, labels = inputs.to(device), labels.to(device)
-            samples_n += inputs.shape[0]
             
             # feed val. data through model
             outputs, probs = model(inputs)
@@ -233,17 +211,13 @@ def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_te
             # predicted labels
             predicted = t.round(probs).to(device)
 
-            # number of correctly predicted image labels
-            correct += (predicted == labels).sum().item()
-                
-    #accuracy
-    accuracy = 100 * correct / (len(labels[0]) * samples_n)
-
-    # F1 score for the batch
-    # f1 = f1_score(labels.detach().to('cpu'), predicted.detach().to('cpu'), average = None)
-    f1=0
-    #TODO: Replace with standardised function to compute scores
-    return {"accuracy":accuracy, "loss": loss.item(), "f1":f1, "correct":correct}
+            avg_loss += loss.item()
+            y_pred =  np.append(y_pred, predicted.detach().to('cpu'), axis=0)
+            y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
+            
+    res = evaluation(y_pred, y_true)
+    res["loss"] = avg_loss / len(batches)
+    return res
 
 if __name__ == "__main__":
     main()

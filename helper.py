@@ -28,18 +28,25 @@ def get_labels():
   label_names = ['No class', 'Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
                   'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Grapevine', 'Strawberry', 'Asparagus', 'Onion', 'Hops', 'Orchard', 'Carrot', 'Other leafy Vegetables']
   labels = [0, 10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 110, 120, 130, 140, 150, 160, 181, 182]
+  
   return labels, label_names
 
 
 def evaluation(y_true, y_pred): 
   labels, label_names = get_labels()
   #standard classfication report - precision, recall, f1-score, support
-  print(classification_report(y_true, y_pred, target_names=label_names))
 
-  print("\nMULTI-LABEL METRICS")
-  print("\nEMR: {}".format(emr(y_true, y_pred)))
-  print("\n1/0Loss: {}".format(one_zero_loss(y_true, y_pred)))
-  print("Hamming Loss: {}".format(hamming_loss(y_true, y_pred)))
+  # print(classification_report(y_true, y_pred, target_names=label_names))
+  res = classification_report(y_true, y_pred, output_dict=True)
+  res["emr"] = emr(y_true, y_pred)
+  res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
+  res["hamming_loss"] = hamming_loss(y_true, y_pred)
+  print(classification_report(y_true, y_pred))
+  print("MULTI-LABEL METRICS")
+  print("EMR: {}".format(res["emr"]))
+  print("1/0Loss: {}".format(res["one_zero_loss"]))
+  print("Hamming Loss: {}".format(res["hamming_loss"]))
+  return res
 
 #Multi-Label Metrics    
 def emr(y_true, y_pred):
