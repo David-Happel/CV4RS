@@ -14,6 +14,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
+from helper import get_labels
 import report
 
 print = report.log
@@ -40,18 +41,16 @@ class ProcessData:
         #empty array to store new window image ids
 
         for band in self.bands:
-            print("Band:", band)
+            print("Band:" + str(band))
             #open file    
             file_path = os.getcwd()+"/"+self.data_dir+tile+"/"+data_filename.format(band = band)
-            print("processing: ", file_path)
+            print("processing: " + file_path)
             with rasterio.open(file_path) as src:
-                print(src.count, src.width, src.height, src.crs) 
-                print(src.meta)
                 sample_i = 0
                 for x in np.arange(0, src.width, window_step):
                     for y in np.arange(0, src.height, window_step):              
                         
-                        print("Reading Window:", x,y)
+                        print(f'Reading Window: {x},{y}')
                         window = Window(x,y,imageWidth, imageHeight)
                         w = src.read(times, window=window)
 
@@ -63,18 +62,15 @@ class ProcessData:
                                     "transform": xform})
                 
                         outfile_path = out_dir+out_filename.format(sample= sample_i, band = band)
-                        with rasterio.open(outfile_path, "w", band=band, **meta_d) as dest:
+                        with rasterio.open(outfile_path, "w", **meta_d) as dest:
                             dest.write_band(times, w)
 
                         sample_i += 1
         
         # Class labels
-        print("\n\n")
         print("Class labels")
         label_file = os.getcwd()+"/"+ self.data_dir + tile+"/" + label_filename
         with rasterio.open(label_file) as src:
-            print(src.count, src.width, src.height, src.crs) 
-            print(src.meta)
             #window stepping
             labels = []
 
@@ -86,7 +82,6 @@ class ProcessData:
                   
 
         ids = range(sample_i)
-        print(len(ids), len(labels))
         
         d = {'image_id': ids, 'labels': labels}
         df = pd.DataFrame(data=d)        
@@ -94,8 +89,8 @@ class ProcessData:
         #image ids dataframe
         image_ids = df["image_id"].to_frame()
     
-        mlb = MultiLabelBinarizer()
-        df1 = pd.DataFrame(mlb.fit_transform(df['labels']),columns=[0, 10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 91, 92, 100, 120, 140, 181, 182])
+        mlb = MultiLabelBinarizer(classes=get_labels()[0])
+        df1 = pd.DataFrame(mlb.fit_transform(df['labels']),columns=get_labels()[0])
         df1 = image_ids.join(df1)
         df1.to_csv(out_dir + "labels.csv", index=True)      
 

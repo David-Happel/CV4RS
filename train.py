@@ -42,7 +42,7 @@ bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
 #Restriction of samples to take
-t_samples = 10
+t_samples = None
 
 class_weights = True
 
@@ -77,7 +77,7 @@ def main():
     #TRAINING
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weights)
 
-    epochs = 3
+    epochs = 100
     k_folds = 5
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
@@ -158,8 +158,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
 
     avg_loss = 0
     # TODO: fix for actual label count
-    y_pred = np.empty((0, 19))
-    y_true = np.empty((0, 19))
+    y_pred = np.empty((0, len(get_labels()[0])))
+    y_true = np.empty((0, len(get_labels()[0])))
 
     for batch_i, batch in enumerate(batches):
         print('Batch: {}/{}'.format(batch_i+1, len(batches)))
@@ -204,9 +204,8 @@ def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_te
     model.eval()
 
     avg_loss = 0
-        # TODO: fix for actual label count
-    y_pred = np.empty((0, 19))
-    y_true = np.empty((0, 19))
+    y_pred = np.empty((0, len(get_labels()[0])))
+    y_true = np.empty((0, len(get_labels()[0])))
     
     with t.no_grad():
         for batch_i, batch in enumerate(batches):

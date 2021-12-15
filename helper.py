@@ -37,11 +37,12 @@ def evaluation(y_true, y_pred):
   #standard classfication report - precision, recall, f1-score, support
 
   # print(classification_report(y_true, y_pred, target_names=label_names))
-  res = classification_report(y_true, y_pred, output_dict=True, labels=np.unique(y_pred))
+  res = classification_report(y_true, y_pred, output_dict=True, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0)
   res["emr"] = emr(y_true, y_pred)
   res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
   res["hamming_loss"] = hamming_loss(y_true, y_pred)
-  print(classification_report(y_true, y_pred, labels=np.unique(y_pred)))
+
+  print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1]), zero_division=0)
   print("MULTI-LABEL METRICS")
   print("EMR: {}".format(res["emr"]))
   print("1/0Loss: {}".format(res["one_zero_loss"]))
