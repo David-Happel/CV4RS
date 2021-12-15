@@ -75,7 +75,7 @@ def main():
     print(f'Pos Weights: {pos_weights}')
 
     #TRAINING
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weights)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weights.to(device))
 
     epochs = 100
     k_folds = 5
