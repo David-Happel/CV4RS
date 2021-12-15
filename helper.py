@@ -42,7 +42,7 @@ def evaluation(y_true, y_pred):
   res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
   res["hamming_loss"] = hamming_loss(y_true, y_pred)
 
-  print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1]), zero_division=0)
+  print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0))
   print("MULTI-LABEL METRICS")
   print("EMR: {}".format(res["emr"]))
   print("1/0Loss: {}".format(res["one_zero_loss"]))
