@@ -1,5 +1,6 @@
 from enum import unique
 import os
+import json
 import numpy as np
 import torch as t
 import torch.nn as nn
@@ -43,14 +44,14 @@ labels, label_names = get_labels()
 #Restriction of samples to take
 t_samples = 10
 
-# Change if need to re-process the data
-process_data = False
+class_weights = True
 
 ### Main Function
 def main():
     #PREPARE DATA 
     dl = ProcessData(bands = bands, times=times)
     if process_data:
+        print("Preparing data")
         #process training data 
         dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
         #process test data 
@@ -58,7 +59,7 @@ def main():
 
     #create dataset
     #data format (sample, band, time, height, width)
-
+    print("Loading data")
     train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/', t_samples=t_samples)
     #converting to tensor datasets
     train_ds = TensorDataset(train_data , train_labels)
@@ -66,11 +67,17 @@ def main():
     labels_n = train_labels.shape[1]
     print("Labels: " + str(labels_n))
 
+    # print(train_labels)
+    if class_weights:
+        pos_weights = train_labels.shape[0] / t.sum(train_labels, axis=0)
+        pos_weights[pos_weights == float('inf')] = 1
+    else: pos_weights = np.ones((train_labels.shape[0]))
+    print(f'Pos Weights: {pos_weights}')
 
     #TRAINING
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weights)
 
-    epochs = 2
+    epochs = 3
     k_folds = 5
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
@@ -100,27 +107,30 @@ def main():
         # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
+        best_f1 = 0
 
         for epoch in range(epochs):  # loop over the dataset multiple times
             print(f'---- EPOCH: {epoch+1} -------------------------------')
             # TRAIN EPOCH
             train_score = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
             train_scores = np.append(train_scores, [train_score])
-            print(train_score)
             
             # TEST EPOCH
             test_score = test(model, test_batches, device=device, criterion=criterion)
             val_scores = np.append(val_scores, [test_score])
-            print(train_score)
-            #TODO: Check if epoch is better than last and save model if so.
             
-        # Process is complete.
-        print('Training process has finished. Saving trained model.')
-
-        # Saving the model
-        save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
-        t.save(model.state_dict(), save_path)
-
+            if(test_score["weighted avg"]["f1-score"] > best_f1):
+                save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
+                t.save(model.state_dict(), save_path)
+                best_f1 = test_score["weighted avg"]["f1-score"]
+                print(f'Saved Epoch model for {epoch+1}')
+            
+            
+            
+    with open(f'{report.report_dir}/train_scores.json', 'w') as fp:
+        json.dump(train_scores.tolist(), fp)
+    with open(f'{report.report_dir}/val_scores.json', 'w') as fp:
+        json.dump(val_scores.tolist(), fp)
 
     # Print fold results
     print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
@@ -129,6 +139,8 @@ def main():
 
     f1_sum = sum(map(lambda fold: fold['weighted avg']["f1-score"],val_scores))
     print(f'Average f1: {f1_sum/len(val_scores)}')
+
+
 
     #TEST EVALUATION
     ## #TODO  work on test set
