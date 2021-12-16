@@ -55,7 +55,7 @@ def main():
         #process training data 
         dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
         #process test data 
-        dl.process_tile("X0071_Y0043", out_dir='data/prepared/test/')
+        dl.process_tile("X0071_Y0042", out_dir='data/prepared/test/')
 
     #create dataset
     #data format (sample, band, time, height, width)
@@ -82,9 +82,11 @@ def main():
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
-    train_scores = np.array([])
-    val_scores =  np.array([])
+    train_scores = dict()
+    val_scores =  dict()
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
+        train_scores[f'fold-{fold+1}'] = []
+        val_scores[f'fold-{fold+1}'] = []
 
         print(f'======= FOLD: {fold+1} ==================================')
         # Sample elements randomly from a given list of ids, no replacement.
@@ -113,11 +115,11 @@ def main():
             print(f'---- EPOCH: {epoch+1} -------------------------------')
             # TRAIN EPOCH
             train_score = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
-            train_scores = np.append(train_scores, [train_score])
+            train_scores[f'fold-{fold+1}'].append(train_score)            
             
             # TEST EPOCH
             test_score = test(model, test_batches, device=device, criterion=criterion)
-            val_scores = np.append(val_scores, [test_score])
+            val_scores[f'fold-{fold+1}'].append(test_score)
             
             if(test_score["weighted avg"]["f1-score"] > best_f1):
                 save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
@@ -128,26 +130,30 @@ def main():
             
             
     with open(f'{report.report_dir}/train_scores.json', 'w') as fp:
-        json.dump(train_scores.tolist(), fp)
+        json.dump(train_scores, fp)
     with open(f'{report.report_dir}/val_scores.json', 'w') as fp:
-        json.dump(val_scores.tolist(), fp)
+        json.dump(val_scores, fp)
 
     # Print fold results
-    print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
-    loss_sum = sum(map(lambda fold: fold["loss"],val_scores))
-    print(f'Average Loss: {loss_sum/len(val_scores)}')
+    # print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
+    # loss_sum = sum(map(lambda fold: fold["loss"],val_scores))
+    # print(f'Average Loss: {loss_sum/len(val_scores)}')
 
-    f1_sum = sum(map(lambda fold: fold['weighted avg']["f1-score"],val_scores))
-    print(f'Average f1: {f1_sum/len(val_scores)}')
+    # f1_sum = sum(map(lambda fold: fold['weighted avg']["f1-score"],val_scores))
+    # print(f'Average f1: {f1_sum/len(val_scores)}')
 
+    
+    print("===== TESTING ======================")
 
+    test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
+    test_ds = TensorDataset(test_data , test_labels)
+    test_batches = DataLoader(
+                        test_ds,
+                        batch_size=5)
 
-    #TEST EVALUATION
-    ## #TODO  work on test set
-
-    # test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
-    # test_ds = TensorDataset(test_data , test_labels)
-
+    test_score = test(model, test_batches, device=device, criterion=criterion)
+    with open(f'{report.report_dir}/test_score.json', 'w') as fp:
+        json.dump(test_score, fp)
 
 
 ### Training Functions
