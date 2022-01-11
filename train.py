@@ -42,43 +42,34 @@ bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
 #Restriction of samples to take
-t_samples = None
+t_samples = 5
 
-class_weights = True
+calculate_class_weights = True
+
+epochs = 2
+k_folds = 5
+
+batch_size = 10
 
 ### Main Function
 def main():
-    #PREPARE DATA 
+    #PRE - Processing
     dl = ProcessData(bands = bands, times=times)
     if process_data:
-        print("Preparing data")
-        #process training data 
-        dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
-        #process test data 
-        dl.process_tile("X0071_Y0042", out_dir='data/prepared/test/')
+        pre_processing(dl)
 
-    #create dataset
-    #data format (sample, band, time, height, width)
+    # Read in pre-processed dataset
+    # data format (sample, band, time, height, width)
     print("Loading data")
-    train_data, train_labels = dl.read_dataset(out_dir='data/prepared/train/', t_samples=t_samples)
-    #converting to tensor datasets
+    train_data, train_labels = dl.read_dataset(data_dir='data/prepared/train/', t_samples=t_samples)
     train_ds = TensorDataset(train_data , train_labels)
 
-    labels_n = train_labels.shape[1]
-    print("Labels: " + str(labels_n))
-
-    # print(train_labels)
-    if class_weights:
-        pos_weights = train_labels.shape[0] / t.sum(train_labels, axis=0)
-        pos_weights[pos_weights == float('inf')] = 1
-    else: pos_weights = np.ones((train_labels.shape[0]))
-    print(f'Pos Weights: {pos_weights}')
+    # Calculate Class Weights
+    class_weights = calc_class_weights(train_labels) if calculate_class_weights else np.ones((train_labels.shape[1]))
+    print(f'Class Weights: {class_weights}')
 
     #TRAINING
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weights.to(device))
-
-    epochs = 100
-    k_folds = 5
+    criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights.to(device))
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
@@ -96,21 +87,19 @@ def main():
         # Define data loaders for training and testing data in this fold
         train_batches = DataLoader(
                         train_ds, 
-                        batch_size=5, sampler=train_subsampler)
+                        batch_size=batch_size, sampler=train_subsampler)
         test_batches = DataLoader(
                         train_ds,
-                        batch_size=5, sampler=test_subsampler)
+                        batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-
-        model = bl(bands=len(bands), labels=labels_n).to(device)
+        model = bl(bands=len(bands), labels=len(class_weights)).to(device)
         # model.apply(reset_weights)
 
-        # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
+        saved_epoch = 0
         best_f1 = 0
-
         for epoch in range(epochs):  # loop over the dataset multiple times
             print(f'---- EPOCH: {epoch+1} -------------------------------')
             # TRAIN EPOCH
@@ -121,44 +110,50 @@ def main():
             test_score = test(model, test_batches, device=device, criterion=criterion)
             val_scores[f'fold-{fold+1}'].append(test_score)
             
+            # Save model if best f1 score of epoch
             if(test_score["weighted avg"]["f1-score"] > best_f1):
+                saved_epoch = epoch+1
                 save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
                 t.save(model.state_dict(), save_path)
                 best_f1 = test_score["weighted avg"]["f1-score"]
                 print(f'Saved Epoch model for {epoch+1}')
-            
-            
-            
+        print(f'Model saved for Fold {fold+1}: epoch {saved_epoch}')
+       
     with open(f'{report.report_dir}/train_scores.json', 'w') as fp:
         json.dump(train_scores, fp)
     with open(f'{report.report_dir}/val_scores.json', 'w') as fp:
         json.dump(val_scores, fp)
-
-    # Print fold results
-    # print(f'K-FOLD CROSS VALIDATION RESULTS FOR {k_folds} FOLDS')
-    # loss_sum = sum(map(lambda fold: fold["loss"],val_scores))
-    # print(f'Average Loss: {loss_sum/len(val_scores)}')
-
-    # f1_sum = sum(map(lambda fold: fold['weighted avg']["f1-score"],val_scores))
-    # print(f'Average f1: {f1_sum/len(val_scores)}')
-
     
     print("===== TESTING ======================")
 
-    test_data, test_labels = dl.read_dataset(out_dir='data/prepared/test/')
+    # Load Testing Data
+    test_data, test_labels = dl.read_dataset(data_dir='data/prepared/test/')
     test_ds = TensorDataset(test_data , test_labels)
     test_batches = DataLoader(
                         test_ds,
-                        batch_size=5)
+                        batch_size=batch_size)
 
+    # Test latest fold model on testing data
     test_score = test(model, test_batches, device=device, criterion=criterion)
     with open(f'{report.report_dir}/test_score.json', 'w') as fp:
         json.dump(test_score, fp)
 
 
+def pre_processing(dl):
+    print("Pre-processing data")
+    #process training data 
+    dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
+    dl.process_tile("X0071_Y0045", out_dir = 'data/prepared/train/')
+    #process test data 
+    dl.process_tile("X0071_Y0042", out_dir='data/prepared/test/')
+
+def calc_class_weights(labels):
+    class_weights = labels.shape[0] / t.sum(labels, axis=0)
+    class_weights[class_weights == float('inf')] = 1
+    return class_weights
+
 ### Training Functions
 
-# train the model
 def train(model, batches, device="cpu", optimizer = None, criterion = None):
     model.train()
 
@@ -170,7 +165,7 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     for batch_i, batch in enumerate(batches):
         print('Batch: {}/{}'.format(batch_i+1, len(batches)))
         
-        # batch is a list of 10 [inputs, labels]  -> e.g. len(labels) = 10
+        # batch is a list of [inputs, labels]
         inputs, labels = batch
         inputs, labels = inputs.to(device), labels.to(device)
         

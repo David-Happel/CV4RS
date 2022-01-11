@@ -36,21 +36,21 @@ class ProcessData:
         imageHeight = self.imageHeight
         window_step = self.window_step
 
-        out_filename = '{sample}_{band}.tif'
+        out_filename = '{tile}_{x}_{y}_{band}.tif'
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         #empty array to store new window image ids
+        files = []
 
-        for band in self.bands:
+        for band_i, band in enumerate(self.bands):
             print("Band:" + str(band))
             #open file    
             file_path = os.getcwd()+"/"+self.data_dir+tile+"/"+data_filename.format(band = band)
             print("processing: " + file_path)
             with rasterio.open(file_path) as src:
-                sample_i = 0
                 for x in np.arange(0, src.width, window_step):
                     for y in np.arange(0, src.height, window_step):              
                         
-                        print(f'Reading Window: {x},{y}')
+                        # print(f'Reading Window: {x},{y}')
                         window = Window(x,y,imageWidth, imageHeight)
                         w = src.read(times, window=window)
 
@@ -60,15 +60,17 @@ class ProcessData:
                         meta_d.update({"height": imageWidth,
                                     "width": imageHeight,
                                     "transform": xform})
-                
-                        outfile_path = out_dir+out_filename.format(sample= sample_i, band = band)
+
+                        filename = '{tile}_{x}_{y}'.format(tile=tile, x=x, y=y)
+                        if band_i == 0: files.append(filename)
+
+                        outfile_path = out_dir+out_filename.format(tile=tile, x=x, y=y, band = band)
                         with rasterio.open(outfile_path, "w", **meta_d) as dest:
                             dest.write_band(times, w)
 
-                        sample_i += 1
         
         # Class labels
-        print("Class labels")
+        print("Reading Class labels")
         label_file = os.getcwd()+"/"+ self.data_dir + tile+"/" + label_filename
         with rasterio.open(label_file) as src:
             #window stepping
@@ -81,13 +83,13 @@ class ProcessData:
                     labels.append(list(np.unique(w)))
                   
 
-        ids = range(sample_i)
         
-        d = {'image_id': ids, 'labels': labels}
+        
+        d = {'image_file': files, 'labels': labels}
         df = pd.DataFrame(data=d)        
       
         #image ids dataframe
-        image_ids = df["image_id"].to_frame()
+        image_ids = df["image_file"].to_frame()
     
         mlb = MultiLabelBinarizer(classes=get_labels()[0])
         df1 = pd.DataFrame(mlb.fit_transform(df['labels']),columns=get_labels()[0])
@@ -95,23 +97,22 @@ class ProcessData:
         df1.to_csv(out_dir + "labels.csv", index=True)      
 
 
-    def read_dataset(self,  out_dir, t_samples=False):
-        label_df = pd.read_csv(os.getcwd()+"/"+out_dir+"/labels.csv",index_col= 0)
+    def read_dataset(self,  data_dir, t_samples=False):
+        label_df = pd.read_csv(os.getcwd()+"/"+data_dir+"/labels.csv",index_col= 0)
         sample_n = label_df.shape[0]
 
-        data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight))
-        for i, file in enumerate(os.listdir(os.getcwd()+"/"+out_dir)):
-            regex = re.search('(\d*)_(.*).tif', file)
-            if not regex : continue
-            sample = int(regex.group(1))
-            band = regex.group(2)
-            band_i = self.bands.index(band)
-            if band_i < 0: print("band not found!")
-            with rasterio.open(os.path.join(out_dir, file)) as src:
-                data[sample, band_i] = src.read()[self.times, :, :]
+        filenames = label_df["image_file"]
+
+        data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight), dtype=float)
+        for i, filename in enumerate(filenames):
+            for band in self.bands:
+                filename_band = f'{filename}_{band}.tif'
+                band_i = self.bands.index(band)
+                with rasterio.open(os.path.join(data_dir, filename_band)) as src:
+                    data[i, band_i] = src.read()[self.times, :, :]
         
         #labels
-        unique_labels = list(filter(lambda c: c not in ["image_id"], label_df.columns))
+        unique_labels = list(filter(lambda c: c not in ["image_file"], label_df.columns))
         #Sample Selection
         if not t_samples: t_samples = sample_n
 
