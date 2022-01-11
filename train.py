@@ -16,8 +16,11 @@ from baseline_simple import C3D as bl
 from processdata import ProcessData
 from helper import reset_weights, get_labels, evaluation
 import report
+from arg_parser import arguments
 
 print = report.log
+
+args = arguments()
 
 ### CONFIG
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
@@ -43,13 +46,19 @@ labels, label_names = get_labels()
 
 #Restriction of samples to take
 t_samples = 5
+print(f'Samples: {t_samples}')
 
-calculate_class_weights = True
+calculate_class_weights = False if args.no_class_weights == False else True
+print(f'Class Weights: {calculate_class_weights}')
 
-epochs = 2
-k_folds = 5
+epochs = args.epochs or 100
+print(f'Epochs: {epochs}')
 
-batch_size = 10
+k_folds = args.folds or 5
+print(f'Folds: {k_folds}')
+
+batch_size = args.batch_size or 10
+print(f'Batch Size: {batch_size}')
 
 ### Main Function
 def main():
