@@ -21,7 +21,10 @@ def arguments():
 
     # Switch
     parser.add_argument('--no_class_weights', action='store_false',
-                        help='A boolean switch')
+                        help='Dont use weighted loss')
+
+    parser.add_argument('--no_process_data', action='store_false',
+                        help='Dont pre-process data')
 
     return parser.parse_args()
 

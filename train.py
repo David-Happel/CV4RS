@@ -33,9 +33,6 @@ else:
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print("Working dir: " + os.getcwd())
 
-# Change if need to process the data
-process_data = False
-
 #create band and times arrays
 t_start = 1
 t_stop = 37
@@ -44,8 +41,11 @@ times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
+# Change if need to process the data
+process_data = False if args.no_process_data == False else True
+
 #Restriction of samples to take
-t_samples = 5
+t_samples = args.samples or None
 print(f'Samples: {t_samples}')
 
 calculate_class_weights = False if args.no_class_weights == False else True
@@ -72,9 +72,11 @@ def main():
     print("Loading data")
     train_data, train_labels = dl.read_dataset(data_dir='data/prepared/train/', t_samples=t_samples)
     train_ds = TensorDataset(train_data , train_labels)
+    print(f'Samples: {len(train_data)}')
 
     # Calculate Class Weights
-    class_weights = calc_class_weights(train_labels) if calculate_class_weights else np.ones((train_labels.shape[1]))
+    class_weights, class_counts = calc_class_weights(train_labels) if calculate_class_weights else np.ones((train_labels.shape[1]))
+    print(f'Class Counts: {class_counts}')
     print(f'Class Weights: {class_weights}')
 
     #TRAINING
@@ -148,18 +150,18 @@ def main():
         json.dump(test_score, fp)
 
 
-def pre_processing(dl):
+def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"], test_tiles = ["X0071_Y0042"]):
     print("Pre-processing data")
     #process training data 
-    dl.process_tile("X0071_Y0043", out_dir = 'data/prepared/train/')
-    dl.process_tile("X0071_Y0045", out_dir = 'data/prepared/train/')
+    dl.process_tiles(train_tiles, out_dir = 'data/prepared/train/')
     #process test data 
-    dl.process_tile("X0071_Y0042", out_dir='data/prepared/test/')
+    dl.process_tiles(test_tiles, out_dir='data/prepared/test/')
 
 def calc_class_weights(labels):
-    class_weights = labels.shape[0] / t.sum(labels, axis=0)
+    class_counts = t.sum(labels, axis=0)
+    class_weights = labels.shape[0] / class_counts
     class_weights[class_weights == float('inf')] = 1
-    return class_weights
+    return class_weights, class_counts
 
 ### Training Functions
 
@@ -167,7 +169,6 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     model.train()
 
     avg_loss = 0
-    # TODO: fix for actual label count
     y_pred = np.empty((0, len(get_labels()[0])))
     y_true = np.empty((0, len(get_labels()[0])))
 
