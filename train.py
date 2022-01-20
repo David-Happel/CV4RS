@@ -13,10 +13,16 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
 
 from baseline_simple import C3D as bl
+from cnn_lstm import CNN_LSTM as cnn_lstm
 from processdata import ProcessData
 from helper import reset_weights, get_labels, evaluation
 import report
 from arg_parser import arguments
+
+from torch.utils.tensorboard import SummaryWriter
+
+# default `log_dir` is "runs" - we'll be more specific here
+writer = SummaryWriter()
 
 print = report.log
 
@@ -62,6 +68,7 @@ print(f'Batch Size: {batch_size}')
 
 ### Main Function
 def main():
+
     #PRE - Processing
     dl = ProcessData(bands = bands, times=times)
     if process_data:
@@ -104,7 +111,9 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-        model = bl(bands=len(bands), labels=len(class_weights)).to(device)
+        # model = bl(bands=len(bands), labels=len(class_weights)).to(device)
+        model = cnn_lstm(bands=len(bands), labels=len(class_weights), device=device).to(device)
+        
         # model.apply(reset_weights)
 
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
@@ -128,6 +137,16 @@ def main():
                 t.save(model.state_dict(), save_path)
                 best_f1 = test_score["weighted avg"]["f1-score"]
                 print(f'Saved Epoch model for {epoch+1}')
+
+            if fold == 0:
+                writer.add_scalar("Train Loss", train_score["loss"], epoch)
+                # tb.add_scalar("Correct", total_correct, epoch)
+                # tb.add_scalar("Accuracy", total_correct/ len(train_set), epoch)
+
+                # tb.add_histogram("conv1.bias", model.conv1.bias, epoch)
+                # tb.add_histogram("conv1.weight", model.conv1.weight, epoch)
+                # tb.add_histogram("conv2.bias", model.conv2.bias, epoch)
+                # tb.add_histogram("conv2.weight", model.conv2.weight, epoch)
         print(f'Model saved for Fold {fold+1}: epoch {saved_epoch}')
        
     with open(f'{report.report_dir}/train_scores.json', 'w') as fp:
@@ -148,6 +167,9 @@ def main():
     test_score = test(model, test_batches, device=device, criterion=criterion)
     with open(f'{report.report_dir}/test_score.json', 'w') as fp:
         json.dump(test_score, fp)
+
+    writer.add_graph(model, test_data[:5])
+    writer.close()
 
 
 def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"], test_tiles = ["X0071_Y0042"]):

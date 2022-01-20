@@ -7,7 +7,6 @@ from pathlib import Path
 import os
 import re
 import pandas as pd
-import c3d
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
