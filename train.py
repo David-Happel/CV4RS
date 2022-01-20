@@ -160,8 +160,8 @@ def main():
     np.save(f'{report.report_dir}/train_scores.json', train_scores)
     np.save(f'{report.report_dir}/val_scores.json', val_scores)
 
-    scalars_from_scores(writer, train_scores, score_names, prepend="train")
-    scalars_from_scores(writer, val_scores, score_names, prepend="val")
+    scalars_from_scores(writer, train_scores, score_names, suffix="train")
+    scalars_from_scores(writer, val_scores, score_names, suffix="val")
     
     print("===== TESTING ======================")
 

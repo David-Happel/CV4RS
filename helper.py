@@ -56,13 +56,11 @@ def evaluation(y_true, y_pred, initial=dict()):
   # print("Hamming Loss: {}".format(res["hamming_loss"]))
   return res_values, res_names
 
-def scalars_from_scores(writer, scores, score_names, prepend=""):
+def scalars_from_scores(writer, scores, score_names, suffix=""):
   scores_mean = np.mean(scores, axis=0)
-  
   for epoch, scores in enumerate(scores_mean):
-    
     for score_i, score in enumerate(scores):
-      writer.add_scalar(f'{prepend}_{score_names[score_i]}', score, epoch)
+      writer.add_scalar(f'{score_names[score_i]}/{suffix}', score, epoch)
 
 #Multi-Label Metrics    
 def emr(y_true, y_pred):
