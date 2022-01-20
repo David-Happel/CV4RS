@@ -4,7 +4,7 @@
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
+#SBATCH --mem=30G
 #SBATCH --partition=gpu_short
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:tesla:1
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 train.py
+python3 train.py --epochs 100 --batch_size 10 

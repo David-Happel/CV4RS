@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch as t
 import numpy as np
+import torch.nn.functional as f
 
 
 class C3D(nn.Module):
@@ -56,35 +57,34 @@ class C3D(nn.Module):
         self.fc7 = nn.Linear(4096, 4096)
         self.fc8 = nn.Linear(4096, labels)
 
-        self.dropout = nn.Dropout(p=0.5)
-
-        self.relu = nn.ReLU()
+        self.dropout1 = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.5)
 
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
 
-        h = self.relu(self.conv1(x))
+        h = f.relu(self.conv1(x))
         h = self.pool1(h)
 
-        h = self.relu(self.conv2(h))
+        h = f.relu(self.conv2(h))
         h = self.pool2(h)
        
-        h = self.relu(self.conv3(h))
+        h = f.relu(self.conv3(h))
         h = self.pool3(h)
 
-        h = self.relu(self.conv4(h))
+        h = f.relu(self.conv4(h))
         h = self.pool4(h)
 
-        h = self.relu(self.conv5(h))
+        h = f.relu(self.conv5(h))
         h = self.pool5(h)
 
         h = t.flatten(h, start_dim = 1)
 
-        h = self.relu(self.fc6(h))
-        h = self.dropout(h)
-        h = self.relu(self.fc7(h))
-        h = self.dropout(h)
+        h = f.relu(self.fc6(h))
+        h = self.dropout1(h)
+        h = f.relu(self.fc7(h))
+        h = self.dropout2(h)
 
         logits = self.fc8(h) 
         probs = self.sigmoid(logits)
