@@ -67,6 +67,10 @@ print(f'Batch Size: {batch_size}')
 writer_suffix = args.name or ""
 print(f'Run Comment: {writer_suffix}')
 
+# Comment out for testing
+train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+test_tiles = ["X0071_Y0042"]
+
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 
 ### Main Function
@@ -75,7 +79,7 @@ def main():
     #PRE - Processing
     dl = ProcessData(bands = bands, times=times)
     if process_data:
-        pre_processing(dl)
+        pre_processing(dl, train_tiles=train_tiles, test_tiles=test_tiles)
 
     # Read in pre-processed dataset
     # data format (sample, band, time, height, width)
