@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
 from torchsummary import summary
+import flatten_json
 
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
@@ -15,14 +16,11 @@ from sklearn.metrics import f1_score, accuracy_score
 from baseline_simple import C3D as bl
 from cnn_lstm import CNN_LSTM as cnn_lstm
 from processdata import ProcessData
-from helper import reset_weights, get_labels, evaluation
+from helper import reset_weights, get_labels, evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
 
 from torch.utils.tensorboard import SummaryWriter
-
-# default `log_dir` is "runs" - we'll be more specific here
-writer = SummaryWriter()
 
 print = report.log
 
@@ -66,6 +64,11 @@ print(f'Folds: {k_folds}')
 batch_size = args.batch_size or 10
 print(f'Batch Size: {batch_size}')
 
+writer_suffix = args.name or ""
+print(f'Run Comment: {writer_suffix}')
+
+writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
+
 ### Main Function
 def main():
 
@@ -91,11 +94,10 @@ def main():
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
-    train_scores = dict()
-    val_scores =  dict()
+    train_scores = np.empty((k_folds, epochs, 101))
+    val_scores =  np.empty((k_folds, epochs, 101))
+    score_names = None
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
-        train_scores[f'fold-{fold+1}'] = []
-        val_scores[f'fold-{fold+1}'] = []
 
         print(f'======= FOLD: {fold+1} ==================================')
         # Sample elements randomly from a given list of ids, no replacement.
@@ -111,8 +113,8 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-        # model = bl(bands=len(bands), labels=len(class_weights)).to(device)
-        model = cnn_lstm(bands=len(bands), labels=len(class_weights), device=device).to(device)
+        model = bl(bands=len(bands), labels=len(class_weights)).to(device)
+        # model = cnn_lstm(bands=len(bands), labels=len(class_weights), device=device).to(device)
         
         # model.apply(reset_weights)
 
@@ -123,36 +125,43 @@ def main():
         for epoch in range(epochs):  # loop over the dataset multiple times
             print(f'---- EPOCH: {epoch+1} -------------------------------')
             # TRAIN EPOCH
-            train_score = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
-            train_scores[f'fold-{fold+1}'].append(train_score)            
+            train_score, train_score_names = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
+            train_scores[fold, epoch] = train_score
             
+            score_names = train_score_names
+
             # TEST EPOCH
-            test_score = test(model, test_batches, device=device, criterion=criterion)
-            val_scores[f'fold-{fold+1}'].append(test_score)
+            test_score, _ = test(model, test_batches, device=device, criterion=criterion)
+            val_scores[fold, epoch] = test_score
             
             # Save model if best f1 score of epoch
-            if(test_score["weighted avg"]["f1-score"] > best_f1):
+            sample_f1 = test_score[list(score_names).index('samples avg_f1-score')]
+            if(sample_f1 > best_f1):
                 saved_epoch = epoch+1
                 save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
                 t.save(model.state_dict(), save_path)
-                best_f1 = test_score["weighted avg"]["f1-score"]
+                best_f1 = sample_f1
                 print(f'Saved Epoch model for {epoch+1}')
 
-            if fold == 0:
-                writer.add_scalar("Train Loss", train_score["loss"], epoch)
-                # tb.add_scalar("Correct", total_correct, epoch)
-                # tb.add_scalar("Accuracy", total_correct/ len(train_set), epoch)
+            # if fold == 0:
+            #     # writer.add_scalar("Train Loss", train_score["loss"], epoch)
+            #     train_score_flattened = flatten_json.flatten(train_score)
+            #     for key, value in train_score_flattened.items():
+            #         writer.add_scalar(f'train_{key}', value, epoch)
+
+            #     test_score_flattened = flatten_json.flatten(test_score)
+            #     for key, value in train_score_flattened.items():
+            #         writer.add_scalar(f'test_{key}', value, epoch)
 
                 # tb.add_histogram("conv1.bias", model.conv1.bias, epoch)
                 # tb.add_histogram("conv1.weight", model.conv1.weight, epoch)
-                # tb.add_histogram("conv2.bias", model.conv2.bias, epoch)
-                # tb.add_histogram("conv2.weight", model.conv2.weight, epoch)
         print(f'Model saved for Fold {fold+1}: epoch {saved_epoch}')
-       
-    with open(f'{report.report_dir}/train_scores.json', 'w') as fp:
-        json.dump(train_scores, fp)
-    with open(f'{report.report_dir}/val_scores.json', 'w') as fp:
-        json.dump(val_scores, fp)
+    
+    np.save(f'{report.report_dir}/train_scores.json', train_scores)
+    np.save(f'{report.report_dir}/val_scores.json', val_scores)
+
+    scalars_from_scores(writer, train_scores, score_names, prepend="train")
+    scalars_from_scores(writer, val_scores, score_names, prepend="val")
     
     print("===== TESTING ======================")
 
@@ -164,9 +173,9 @@ def main():
                         batch_size=batch_size)
 
     # Test latest fold model on testing data
-    test_score = test(model, test_batches, device=device, criterion=criterion)
-    with open(f'{report.report_dir}/test_score.json', 'w') as fp:
-        json.dump(test_score, fp)
+    test_score, _ = test(model, test_batches, device=device, criterion=criterion)
+    np.save(f'{report.report_dir}/test_score.json', test_score)
+    np.save(f'{report.report_dir}/score_names.json', score_names)
 
     writer.add_graph(model, test_data[:5])
     writer.close()
@@ -228,9 +237,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         y_pred =  np.append(y_pred, predicted.detach().to('cpu'), axis=0)
         y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
         
-    res = evaluation(y_pred, y_true)
-    res["loss"] = avg_loss / len(batches)
-    return res
+    scores = dict({"loss": avg_loss / len(batches)})
+    return evaluation(y_pred, y_true, initial=scores)
 
 
 def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
@@ -259,9 +267,9 @@ def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_te
             y_pred =  np.append(y_pred, predicted.detach().to('cpu'), axis=0)
             y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
             
-    res = evaluation(y_pred, y_true)
-    res["loss"] = avg_loss / len(batches)
-    return res
+
+    scores = dict({"loss": avg_loss / len(batches)})
+    return evaluation(y_pred, y_true, initial=scores)
 
 if __name__ == "__main__":
     main()

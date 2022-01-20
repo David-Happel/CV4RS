@@ -19,6 +19,9 @@ def arguments():
     parser.add_argument('--batch_size', type=int,
                     help='batch size')
 
+    parser.add_argument('--name', type=str,
+                    help='filename_suffix')
+
     # Switch
     parser.add_argument('--no_class_weights', action='store_false',
                         help='Dont use weighted loss')

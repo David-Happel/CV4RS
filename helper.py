@@ -1,7 +1,8 @@
 
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score, balanced_accuracy_score
 import numpy as np
 import report
+import flatten_json
 
 print = report.log
 
@@ -32,22 +33,36 @@ def get_labels():
   return labels, label_names
 
 
-def evaluation(y_true, y_pred): 
+def evaluation(y_true, y_pred, initial=dict()): 
   labels, label_names = get_labels()
   #standard classfication report - precision, recall, f1-score, support
 
-  # print(classification_report(y_true, y_pred, target_names=label_names))
   res = classification_report(y_true, y_pred, output_dict=True, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0)
   res["emr"] = emr(y_true, y_pred)
   res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
   res["hamming_loss"] = hamming_loss(y_true, y_pred)
+  res["accuracy"] = accuracy_score(y_true, y_pred)
+  res = flatten_json.flatten(res)
+  res_names = np.array(list(res.keys()))
+  res_values = np.array(list(res.values()))
+  res_names = np.concatenate((np.array(list(initial.keys())), res_names))
+  res_values = np.concatenate((np.array(list(initial.values())), res_values))
 
-  print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0))
-  print("MULTI-LABEL METRICS")
-  print("EMR: {}".format(res["emr"]))
-  print("1/0Loss: {}".format(res["one_zero_loss"]))
-  print("Hamming Loss: {}".format(res["hamming_loss"]))
-  return res
+
+  # print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0))
+  # print("MULTI-LABEL METRICS")
+  # print("EMR: {}".format(res["emr"]))
+  # print("1/0Loss: {}".format(res["one_zero_loss"]))
+  # print("Hamming Loss: {}".format(res["hamming_loss"]))
+  return res_values, res_names
+
+def scalars_from_scores(writer, scores, score_names, prepend=""):
+  scores_mean = np.mean(scores, axis=0)
+  
+  for epoch, scores in enumerate(scores_mean):
+    
+    for score_i, score in enumerate(scores):
+      writer.add_scalar(f'{prepend}_{score_names[score_i]}', score, epoch)
 
 #Multi-Label Metrics    
 def emr(y_true, y_pred):
