@@ -19,6 +19,9 @@ def arguments():
     parser.add_argument('--batch_size', type=int,
                     help='batch size')
 
+    parser.add_argument('--timepoints', type=int,
+                help='timepoints')
+
     parser.add_argument('--name', type=str,
                     help='filename_suffix')
 

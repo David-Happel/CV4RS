@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 train.py --epochs 50 --batch_size 15 --name 6t
+python3 train.py --epochs 50 --batch_size 10 --timepoints 18 --name 6t

@@ -37,14 +37,6 @@ else:
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print("Working dir: " + os.getcwd())
 
-#create band and times arrays
-t_start = 1
-t_stop = 37
-t_step = 6
-times = range(t_start,t_stop,t_step)
-bands = ["GRN", "NIR", "RED"]
-labels, label_names = get_labels()
-
 # Change if need to process the data
 process_data = False if args.no_process_data == False else True
 
@@ -67,9 +59,24 @@ print(f'Batch Size: {batch_size}')
 writer_suffix = args.name or ""
 print(f'Run Comment: {writer_suffix}')
 
-# Comment out for testing
+timepoints = args.timepoints or 6
+print(f'Timepoints: {timepoints}')
+
+#create band and times arrays
+t_start = 1
+t_stop = 37
+t_step = int(36 / timepoints)
+times = range(t_start,t_stop,t_step)
+bands = ["GRN", "NIR", "RED"]
+labels, label_names = get_labels()
+
+
 train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
 test_tiles = ["X0071_Y0042"]
+
+# Uncomment for testing
+# train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+# test_tiles = ["X0071_Y0042"]
 
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 
