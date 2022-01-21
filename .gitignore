@@ -135,3 +135,7 @@ dmypy.json
 /models/*
 
 reports/report*
+runs
+hpc_runs
+
+plots

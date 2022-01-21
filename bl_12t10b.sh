@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/CV4RS/log.out
+#SBATCH -o /home/users/d/davidhappel/CV4RS/12t10b.out
 #SBATCH --chdir=/home/users/d/davidhappel/CV4RS
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 train.py --epochs 50 --batch_size 10 --timepoints 18 --name 6t
+python3 train.py --epochs 50 --batch_size 10 --timepoints 12 --model bl --name 12t10b --no_process_data
