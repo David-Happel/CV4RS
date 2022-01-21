@@ -12,9 +12,7 @@ from torchsummary import summary
 
 #input shape : data format (sample, band, time, height, width)
 X = t.rand(100, 3, 6, 224, 224)
-
 test = vit()
-
 #summary(test, (100, 3, 6, 224, 224))
 test(X)
 
