@@ -54,6 +54,7 @@ class C3D(nn.Module):
 
         self.fc6 = nn.Linear(12544, 4096)
         self.fc7 = nn.Linear(4096, 4096)
+    
         self.fc8 = nn.Linear(4096, labels)
 
         self.dropout = nn.Dropout(p=0.5)

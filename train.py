@@ -102,7 +102,6 @@ def main():
                         batch_size=5, sampler=test_subsampler)
 
         #model selection
-
         model = bl(bands=len(bands), labels=labels_n).to(device)
         # model.apply(reset_weights)
 
