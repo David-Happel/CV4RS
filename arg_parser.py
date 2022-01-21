@@ -25,6 +25,9 @@ def arguments():
     parser.add_argument('--name', type=str,
                     help='filename_suffix')
 
+    parser.add_argument('--model', type=str,
+                help='bl/lstm/trans')
+
     # Switch
     parser.add_argument('--no_class_weights', action='store_false',
                         help='Dont use weighted loss')

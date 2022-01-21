@@ -3,7 +3,7 @@
 Crop Classification from Sentinel-2 Time Series Data
 
 ```
-python train.py --samples 5 --epochs 1 --batch_size 5 --no_process_data
+python train.py --samples 5 --epochs 2 --batch_size 5  --timepoints 6 --model bl --name run_name --no_process_data
 ```
 
 ## HPC

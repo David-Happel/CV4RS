@@ -136,5 +136,6 @@ dmypy.json
 
 reports/report*
 runs
+hpc_runs
 
 plots

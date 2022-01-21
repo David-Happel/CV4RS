@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import torch.nn as nn
+import torch
+import numpy as np
+import torch.nn.functional as f
 class CNN_LSTM(nn.Module):
     
-    def __init__(self, bands = 3, labels = 19):
+    def __init__(self, bands = 3, labels = 19, device="cpu"):
         
         super(CNN_LSTM, self).__init__()
+
+        self.device = device
         
         # default stride (1), padding (0), dilation (1)
         self.conv1 = nn.Conv2d(in_channels = bands, out_channels = 64, kernel_size = 3, stride = 2, padding = 1)
@@ -70,7 +75,7 @@ class CNN_LSTM(nn.Module):
         #print('avg squeeze:', avg.shape) [10, 256]
         
         # only need 10, 6, 256 as input to LSTM (batch size, seuqence length, features)
-        CNN_sequence = torch.Tensor(CNN_sequence.size(0), CNN_sequence.size(1), avg.size(1)).to(device)
+        CNN_sequence = torch.Tensor(CNN_sequence.size(0), CNN_sequence.size(1), avg.size(1)).to(self.device)
         print('new seq.:', CNN_sequence.shape)
         
         #ready to pitch to LSTM

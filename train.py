@@ -14,7 +14,7 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
 
 from baseline_simple import C3D as bl
-from cnn_lstm import CNN_LSTM as cnn_lstm
+from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
 from processdata import ProcessData
 from helper import reset_weights, get_labels, evaluation, scalars_from_scores
 import report
@@ -62,6 +62,12 @@ print(f'Run Comment: {writer_suffix}')
 timepoints = args.timepoints or 6
 print(f'Timepoints: {timepoints}')
 
+model_name = args.model or "bl"
+print(f'Model_Name: {model_name}')
+model_names = ["bl", "lstm", "trans"]
+models = [bl, cnn_lstm, bl]
+model_class = models[model_names.index(model_name)]
+
 #create band and times arrays
 t_start = 1
 t_stop = 37
@@ -75,8 +81,8 @@ train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0
 test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
-# train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
-# test_tiles = ["X0071_Y0042"]
+train_tiles = ["X0071_Y0043"]
+test_tiles = ["X0071_Y0042"]
 
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 
@@ -124,8 +130,7 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-        model = bl(bands=len(bands), labels=len(class_weights)).to(device)
-        # model = cnn_lstm(bands=len(bands), labels=len(class_weights), device=device).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), device=device).to(device)
         
         # model.apply(reset_weights)
 
@@ -154,22 +159,10 @@ def main():
                 best_f1 = sample_f1
                 print(f'Saved Epoch model for {epoch+1}')
 
-            # if fold == 0:
-            #     # writer.add_scalar("Train Loss", train_score["loss"], epoch)
-            #     train_score_flattened = flatten_json.flatten(train_score)
-            #     for key, value in train_score_flattened.items():
-            #         writer.add_scalar(f'train_{key}', value, epoch)
-
-            #     test_score_flattened = flatten_json.flatten(test_score)
-            #     for key, value in train_score_flattened.items():
-            #         writer.add_scalar(f'test_{key}', value, epoch)
-
-                # tb.add_histogram("conv1.bias", model.conv1.bias, epoch)
-                # tb.add_histogram("conv1.weight", model.conv1.weight, epoch)
         print(f'Model saved for Fold {fold+1}: epoch {saved_epoch}')
     
-    np.save(f'{report.report_dir}/train_scores.json', train_scores)
-    np.save(f'{report.report_dir}/val_scores.json', val_scores)
+    np.save(f'{report.report_dir}/train_scores.npy', train_scores)
+    np.save(f'{report.report_dir}/val_scores.npy', val_scores)
 
     scalars_from_scores(writer, train_scores, score_names, suffix="train")
     scalars_from_scores(writer, val_scores, score_names, suffix="val")
@@ -185,10 +178,10 @@ def main():
 
     # Test latest fold model on testing data
     test_score, _ = test(model, test_batches, device=device, criterion=criterion)
-    np.save(f'{report.report_dir}/test_score.json', test_score)
-    np.save(f'{report.report_dir}/score_names.json', score_names)
+    np.save(f'{report.report_dir}/test_score.npy', test_score)
+    np.save(f'{report.report_dir}/score_names.npy', score_names)
 
-    writer.add_graph(model, test_data[:5])
+    writer.add_graph(model, test_data[:5].to(device))
     writer.close()
 
 
