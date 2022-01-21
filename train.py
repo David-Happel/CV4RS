@@ -81,8 +81,8 @@ train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0
 test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
-train_tiles = ["X0071_Y0043"]
-test_tiles = ["X0071_Y0042"]
+# train_tiles = ["X0071_Y0043"]
+# test_tiles = ["X0071_Y0042"]
 
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 

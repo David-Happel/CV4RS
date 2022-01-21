@@ -41,19 +41,19 @@ class CNN_LSTM(nn.Module):
         print(x.shape) #batch size, c, t, h, w
         
         for t in range(x.size(2)):
-            print('Loop', t)
+            # print('Loop', t)
             out = self.relu(self.conv1(x[:, :, t, :, :]))
             out = self.pool1(out)
         
             out = self.relu(self.conv2(out))
             out = self.pool2(out)
-            print('c2: out:', out.shape)
+            # print('c2: out:', out.shape)
         
             out = self.relu(self.conv3(out))            
-            print('c3: out:', out.shape)   # [10, 256, 27, 27]
+            # print('c3: out:', out.shape)   # [10, 256, 27, 27]
             
             out.view(out.size(0), -1)
-            print('out shape after view:', out.shape) # [10, 256, 27, 27]
+            # print('out shape after view:', out.shape) # [10, 256, 27, 27]
             
             CNN_sequence.append(out)
             
@@ -62,7 +62,7 @@ class CNN_LSTM(nn.Module):
 
         #batch 1st
         CNN_sequence = CNN_sequence.transpose_(0, 1)
-        print('CNN_seq going into LSTM:', CNN_sequence.shape)   #10, 6, 256, 27, 27
+        # print('CNN_seq going into LSTM:', CNN_sequence.shape)   #10, 6, 256, 27, 27
         
         # do pool before LSTM: avg., max to get info of all layers into shape (B, T, Fetaures)
         # create tensor of shape B, C, H, W
@@ -76,7 +76,7 @@ class CNN_LSTM(nn.Module):
         
         # only need 10, 6, 256 as input to LSTM (batch size, seuqence length, features)
         CNN_sequence = torch.Tensor(CNN_sequence.size(0), CNN_sequence.size(1), avg.size(1)).to(self.device)
-        print('new seq.:', CNN_sequence.shape)
+        # print('new seq.:', CNN_sequence.shape)
         
         #ready to pitch to LSTM
         self.lstm.flatten_parameters()
@@ -84,14 +84,14 @@ class CNN_LSTM(nn.Module):
         # with -1 for 4 & 5 element only pick the features of the last 25 x25 matrix
         #out, (h_n, c_n) = self.lstm(CNN_sequence[:, :, :, -1, -1], None)
         out, (h_n, c_n) = self.lstm(CNN_sequence[:, :, :], None)
-        print('LSTM out:', out.shape)  #batch, seq, feature
+        # print('LSTM out:', out.shape)  #batch, seq, feature
         
         # last seq element
         out = self.fc1(out[:, -1, :])
-        print('out fc: ', out.shape)
-        print(out)
+        # print('out fc: ', out.shape)
+        # print(out)
         
         probs = self.sigmoid(out)
-        print('probs after sigmoid:', probs)
+        # print('probs after sigmoid:', probs)
         
         return out, probs
