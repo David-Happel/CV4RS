@@ -17,6 +17,7 @@ from helper import get_labels
 import report
 
 print = report.log
+file_type = 'tiff'
 
 class ProcessData:
     def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(1,37,1)):
@@ -29,7 +30,7 @@ class ProcessData:
         self.bands = bands
 
 
-    def process_tiles(self, tiles, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif', out_dir = 'data/prepared/'):
+    def process_tiles(self, tiles, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tiff', label_filename = '/IACS_2018.tiff', out_dir = 'data/prepared/'):
         bands = self.bands
         times = self.times
         imageWidth = self.imageWidth
