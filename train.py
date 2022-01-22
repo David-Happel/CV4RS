@@ -9,11 +9,8 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
 from torchsummary import summary
 import flatten_json
-
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
-
-
 from processdata import ProcessData
 from helper import reset_weights, get_labels, evaluation, scalars_from_scores
 import report
@@ -84,8 +81,8 @@ labels, label_names = get_labels()
 #test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
-train_tiles = ["X0071_Y0043"]
-test_tiles = ["X0071_Y0042"]
+# train_tiles = ["X0071_Y0043"]
+# test_tiles = ["X0071_Y0042"]
 
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 
@@ -224,8 +221,6 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         # forward + backward + optimize  for the batch
         # outputs =  logits, probs ) probabilities from sigmoid layer
         outputs, probs = model(inputs)
-        #print('outputs', outputs)
-        #print('probs', probs)
         
         # compute loss using logits
         loss = criterion(outputs, labels)
@@ -238,7 +233,6 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
             
         # predicted labels for F1 score
         predicted = t.round(probs).to(device)
-        #print('predicted:', predicted)
 
         avg_loss += loss.item()
 
