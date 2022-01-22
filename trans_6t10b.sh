@@ -10,10 +10,10 @@
 #SBATCH --gres=gpu:tesla:1
 
 echo "Loading venv..."
-source /home/users/d/davidhappel/venv/cv4rs/bin/activate
+source /home/users/m/moran/venv/cv4rs/bin/activate
 
 echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 train.py --epochs 50 --batch_size 10 --timepoints 6 --model bl --name 6t10b --no_process_data
+python3 train.py --epochs 50 --batch_size 10 --timepoints 6 --model trans --name 6t10b --no_process_data
