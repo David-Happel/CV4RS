@@ -13,14 +13,17 @@ import flatten_json
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
 
-from baseline_simple import C3D as bl
-from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
+
 from processdata import ProcessData
 from helper import reset_weights, get_labels, evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
 
 from torch.utils.tensorboard import SummaryWriter
+#Models
+from baseline_simple import C3D as bl
+from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
+from transformer import CNNVIT as trans
 
 print = report.log
 
@@ -65,7 +68,7 @@ print(f'Timepoints: {timepoints}')
 model_name = args.model or "bl"
 print(f'Model_Name: {model_name}')
 model_names = ["bl", "lstm", "trans"]
-models = [bl, cnn_lstm, bl]
+models = [bl, cnn_lstm, trans]
 model_class = models[model_names.index(model_name)]
 
 #create band and times arrays
@@ -76,13 +79,13 @@ times = range(t_start,t_stop,t_step)
 bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
-
-train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
-test_tiles = ["X0071_Y0042"]
+#train and test tiles
+#train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+#test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
-# train_tiles = ["X0071_Y0043"]
-# test_tiles = ["X0071_Y0042"]
+train_tiles = ["X0071_Y0043"]
+test_tiles = ["X0071_Y0042"]
 
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 
@@ -163,12 +166,13 @@ def main():
     
     np.save(f'{report.report_dir}/train_scores.npy', train_scores)
     np.save(f'{report.report_dir}/val_scores.npy', val_scores)
-
+    #helper function - transforms multidimensional scores to tensorboard
     scalars_from_scores(writer, train_scores, score_names, suffix="train")
     scalars_from_scores(writer, val_scores, score_names, suffix="val")
     
-    print("===== TESTING ======================")
 
+    print("===== TESTING ======================")
+    #Actual test performance
     # Load Testing Data
     test_data, test_labels = dl.read_dataset(data_dir='data/prepared/test/')
     test_ds = TensorDataset(test_data , test_labels)
@@ -177,7 +181,7 @@ def main():
                         batch_size=batch_size)
 
     # Test latest fold model on testing data
-    test_score, _ = test(model, test_batches, device=device, criterion=criterion)
+    test_score, _ = predict(model, test_batches, device=device, criterion=criterion)
     np.save(f'{report.report_dir}/test_score.npy', test_score)
     np.save(f'{report.report_dir}/score_names.npy', score_names)
 
@@ -244,8 +248,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     scores = dict({"loss": avg_loss / len(batches)})
     return evaluation(y_pred, y_true, initial=scores)
 
-
-def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
+#Make predictions
+def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
     model.eval()
 
     avg_loss = 0
@@ -271,7 +275,6 @@ def test(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_te
             y_pred =  np.append(y_pred, predicted.detach().to('cpu'), axis=0)
             y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
             
-
     scores = dict({"loss": avg_loss / len(batches)})
     return evaluation(y_pred, y_true, initial=scores)
 
