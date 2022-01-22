@@ -101,12 +101,12 @@ def main():
     print(f'Samples: {len(train_dataset)}')
 
     # Calculate Class Weights
-    class_weights, class_counts = calc_class_weights(train_labels) if calculate_class_weights else t.from_numpy(np.ones((len(train_dataset.labels)))),[]
-    print(f'Class Counts: {class_counts}')
+    class_weights = calc_class_weights(train_dataset) if calculate_class_weights else np.ones((len(train_dataset.labels)))
+    print(f'Class Counts: {train_dataset.label_counts}')
     print(f'Class Weights: {class_weights}')
 
     #TRAINING
-    criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights.to(device))
+    criterion = nn.BCEWithLogitsLoss(pos_weight=t.from_numpy(class_weights).to(device))
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
@@ -189,11 +189,10 @@ def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040
     #process test data 
     dl.process_tiles(test_tiles, out_dir='data/prepared/test/')
 
-def calc_class_weights(labels):
-    class_counts = t.sum(labels, axis=0)
-    class_weights = labels.shape[0] / class_counts
+def calc_class_weights(dataset):
+    class_weights = len(dataset) / np.array(dataset.label_counts)
     class_weights[class_weights == float('inf')] = 1
-    return class_weights, class_counts
+    return class_weights
 
 ### Training Functions
 

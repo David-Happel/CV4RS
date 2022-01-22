@@ -15,8 +15,8 @@ class DeepCropDataset(Dataset):
                 on a sample.
         """
         self.frame = pd.read_csv(os.path.join(root_dir,csv_file),index_col= 0)
-        if t_samples:
-            self.frame = self.frame.head(t_samples)
+        if t_samples: self.frame = self.frame.head(t_samples)
+
         self.root_dir = root_dir
         self.transform = transform
 
@@ -28,6 +28,8 @@ class DeepCropDataset(Dataset):
         self.labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
         self.label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
                   'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
+
+        self.label_counts = np.sum(self.frame.loc[:, map(str, self.labels)], axis=0)
 
     def __len__(self):
         return len(self.frame)
