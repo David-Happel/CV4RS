@@ -5,6 +5,9 @@ import os
 import torch
 import rasterio
 
+label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
+                  'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
+labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
 class DeepCropDataset(Dataset):
     def __init__(self, csv_file, root_dir, bands=["GRN", "NIR", "RED"], times=range(0,36,1), transform=None, t_samples=None):
         """
@@ -25,9 +28,8 @@ class DeepCropDataset(Dataset):
 
         self.imageWidth = 224
         self.imageHeight = 224
-        self.labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
-        self.label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
-                  'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
+        self.labels = labels
+        self.label_names = label_names
 
         self.label_counts = np.sum(self.frame.loc[:, map(str, self.labels)], axis=0)
 
@@ -37,7 +39,7 @@ class DeepCropDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-
+            
         filename = os.path.join(self.root_dir, self.frame.iloc[idx, 0])
         
         sample_data = np.empty((len(self.bands), len(self.times), self.imageWidth, self.imageHeight), dtype=float)

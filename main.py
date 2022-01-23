@@ -12,7 +12,7 @@ import flatten_json
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
 from processdata import ProcessData
-from helper import reset_weights, get_labels, evaluation, scalars_from_scores
+from helper import evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
 
@@ -22,7 +22,7 @@ from baseline_simple import C3D as bl
 from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
 
-from dataset import DeepCropDataset, ToTensor
+from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
 
 print = report.log
 
@@ -74,11 +74,10 @@ model_class = models[model_names.index(model_name)]
 t_step = int(36 / timepoints)
 times = range(0,36,t_step)
 bands = ["GRN", "NIR", "RED"]
-labels, label_names = get_labels()
 
 #train and test tiles
-# train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
-# test_tiles = ["X0071_Y0042"]
+train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
 # train_tiles = ["X0071_Y0043"]
@@ -178,7 +177,7 @@ def main():
     np.save(f'{report.report_dir}/test_score.npy', test_score)
     np.save(f'{report.report_dir}/score_names.npy', score_names)
 
-    writer.add_graph(model, test_dataset[:5].to(device))
+    # writer.add_graph(model, test_dataset[:5].to(device))
     writer.close()
 
 
@@ -200,8 +199,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     model.train()
 
     avg_loss = 0
-    y_pred = np.empty((0, len(get_labels()[0])))
-    y_true = np.empty((0, len(get_labels()[0])))
+    y_pred = np.empty((0, len(unique_labels)))
+    y_true = np.empty((0, len(unique_labels)))
 
     for batch_i, batch in enumerate(batches):
         print('Batch: {}/{}'.format(batch_i+1, len(batches)))
@@ -242,8 +241,8 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
     model.eval()
 
     avg_loss = 0
-    y_pred = np.empty((0, len(get_labels()[0])))
-    y_true = np.empty((0, len(get_labels()[0])))
+    y_pred = np.empty((0, len(unique_labels)))
+    y_true = np.empty((0, len(unique_labels)))
     
     with t.no_grad():
         for batch_i, batch in enumerate(batches):

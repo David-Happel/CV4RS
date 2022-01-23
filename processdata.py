@@ -13,13 +13,13 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from helper import get_labels
+from dataset import labels as unique_labels, label_names
 import report
 
 print = report.log
 
 class ProcessData:
-    def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(1,37,1)):
+    def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(0,36,1)):
         self.data_dir = data_dir
         self.imageWidth = 224
         self.imageHeight = 224
@@ -31,7 +31,6 @@ class ProcessData:
 
     def process_tiles(self, tiles, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif', out_dir = 'data/prepared/'):
         bands = self.bands
-        times = self.times
         imageWidth = self.imageWidth
         imageHeight = self.imageHeight
         window_step = self.window_step
@@ -51,7 +50,7 @@ class ProcessData:
                             
                             # print(f'Reading Window: {x},{y}')
                             window = Window(x,y,imageWidth, imageHeight)
-                            w = src.read(times, window=window)
+                            w = src.read(range(1,37,1), window=window)
 
                             # write meta data    
                             xform = rasterio.windows.transform(window, src.meta['transform'])    
@@ -65,7 +64,7 @@ class ProcessData:
 
                             outfile_path = out_dir+out_filename.format(tile=tile, x=x, y=y, band = band)
                             with rasterio.open(outfile_path, "w", **meta_d) as dest:
-                                dest.write_band(times, w)
+                                dest.write(w)
 
         # Class labels
         print("Reading Class labels")
@@ -84,9 +83,9 @@ class ProcessData:
         #image ids dataframe
         image_files = pd.DataFrame(data={'image_file': files})
     
-        mlb = MultiLabelBinarizer(classes=get_labels()[0])
+        mlb = MultiLabelBinarizer(classes=unique_labels)
         one_hot_labels = mlb.fit_transform(labels)
-        one_hot_df = pd.DataFrame(one_hot_labels,columns=get_labels()[0])
+        one_hot_df = pd.DataFrame(one_hot_labels,columns=unique_labels)
 
         one_hot_df = image_files.join(one_hot_df)
         one_hot_df.to_csv(out_dir + "labels.csv", index=True)           
