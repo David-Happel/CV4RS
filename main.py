@@ -12,7 +12,7 @@ import flatten_json
 from sklearn.model_selection import KFold
 from sklearn.metrics import f1_score, accuracy_score
 from processdata import ProcessData
-from helper import reset_weights, get_labels, evaluation, scalars_from_scores
+from helper import evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
 
@@ -21,6 +21,8 @@ from torch.utils.tensorboard import SummaryWriter
 from baseline_simple import C3D as bl
 from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
+
+from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
 
 print = report.log
 
@@ -69,16 +71,13 @@ models = [bl, cnn_lstm, trans]
 model_class = models[model_names.index(model_name)]
 
 #create band and times arrays
-t_start = 1
-t_stop = 37
 t_step = int(36 / timepoints)
-times = range(t_start,t_stop,t_step)
+times = range(0,36,t_step)
 bands = ["GRN", "NIR", "RED"]
-labels, label_names = get_labels()
 
 #train and test tiles
-#train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
-#test_tiles = ["X0071_Y0042"]
+train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
 # train_tiles = ["X0071_Y0043"]
@@ -97,24 +96,23 @@ def main():
     # Read in pre-processed dataset
     # data format (sample, band, time, height, width)
     print("Loading data")
-    train_data, train_labels = dl.read_dataset(data_dir='data/prepared/train/', t_samples=t_samples)
-    train_ds = TensorDataset(train_data , train_labels)
-    print(f'Samples: {len(train_data)}')
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), t_samples=t_samples)
+    print(f'Samples: {len(train_dataset)}')
 
     # Calculate Class Weights
-    class_weights, class_counts = calc_class_weights(train_labels) if calculate_class_weights else np.ones((train_labels.shape[1]))
-    print(f'Class Counts: {class_counts}')
+    class_weights = calc_class_weights(train_dataset) if calculate_class_weights else np.ones((len(train_dataset.labels)))
+    print(f'Class Counts: {train_dataset.label_counts}')
     print(f'Class Weights: {class_weights}')
 
     #TRAINING
-    criterion = nn.BCEWithLogitsLoss(pos_weight=class_weights.to(device))
+    criterion = nn.BCEWithLogitsLoss(pos_weight=t.from_numpy(class_weights).to(device))
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
     train_scores = np.empty((k_folds, epochs, 101))
     val_scores =  np.empty((k_folds, epochs, 101))
     score_names = None
-    for fold, (train_ids, test_ids) in enumerate(kfold.split(train_ds)):
+    for fold, (train_ids, test_ids) in enumerate(kfold.split(train_dataset)):
 
         print(f'======= FOLD: {fold+1} ==================================')
         # Sample elements randomly from a given list of ids, no replacement.
@@ -123,16 +121,14 @@ def main():
 
         # Define data loaders for training and testing data in this fold
         train_batches = DataLoader(
-                        train_ds, 
+                        train_dataset, 
                         batch_size=batch_size, sampler=train_subsampler)
         test_batches = DataLoader(
-                        train_ds,
+                        train_dataset,
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
         model = model_class(bands=len(bands), labels=len(class_weights), device=device).to(device)
-        
-        # model.apply(reset_weights)
 
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
@@ -147,7 +143,7 @@ def main():
             score_names = train_score_names
 
             # TEST EPOCH
-            test_score, _ = test(model, test_batches, device=device, criterion=criterion)
+            test_score, _ = predict(model, test_batches, device=device, criterion=criterion)
             val_scores[fold, epoch] = test_score
             
             # Save model if best f1 score of epoch
@@ -171,10 +167,9 @@ def main():
     print("===== TESTING ======================")
     #Actual test performance
     # Load Testing Data
-    test_data, test_labels = dl.read_dataset(data_dir='data/prepared/test/')
-    test_ds = TensorDataset(test_data , test_labels)
+    test_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/test", times=times, transform=ToTensor(), t_samples=t_samples)
     test_batches = DataLoader(
-                        test_ds,
+                        test_dataset,
                         batch_size=batch_size)
 
     # Test latest fold model on testing data
@@ -182,7 +177,7 @@ def main():
     np.save(f'{report.report_dir}/test_score.npy', test_score)
     np.save(f'{report.report_dir}/score_names.npy', score_names)
 
-    writer.add_graph(model, test_data[:5].to(device))
+    # writer.add_graph(model, test_dataset[:5].to(device))
     writer.close()
 
 
@@ -193,11 +188,10 @@ def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040
     #process test data 
     dl.process_tiles(test_tiles, out_dir='data/prepared/test/')
 
-def calc_class_weights(labels):
-    class_counts = t.sum(labels, axis=0)
-    class_weights = labels.shape[0] / class_counts
+def calc_class_weights(dataset):
+    class_weights = len(dataset) / np.array(dataset.label_counts)
     class_weights[class_weights == float('inf')] = 1
-    return class_weights, class_counts
+    return class_weights
 
 ### Training Functions
 
@@ -205,8 +199,8 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
     model.train()
 
     avg_loss = 0
-    y_pred = np.empty((0, len(get_labels()[0])))
-    y_true = np.empty((0, len(get_labels()[0])))
+    y_pred = np.empty((0, len(unique_labels)))
+    y_true = np.empty((0, len(unique_labels)))
 
     for batch_i, batch in enumerate(batches):
         print('Batch: {}/{}'.format(batch_i+1, len(batches)))
@@ -247,8 +241,8 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
     model.eval()
 
     avg_loss = 0
-    y_pred = np.empty((0, len(get_labels()[0])))
-    y_true = np.empty((0, len(get_labels()[0])))
+    y_pred = np.empty((0, len(unique_labels)))
+    y_true = np.empty((0, len(unique_labels)))
     
     with t.no_grad():
         for batch_i, batch in enumerate(batches):
@@ -274,6 +268,3 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
 
 if __name__ == "__main__":
     main()
-
-
-

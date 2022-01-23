@@ -3,6 +3,7 @@ from sklearn.metrics import classification_report, accuracy_score, balanced_accu
 import numpy as np
 import report
 import flatten_json
+from dataset import labels, label_names
 
 print = report.log
 
@@ -13,31 +14,10 @@ def output_size(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0):
     w_out_len =  ((w_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
     return d_out_len, h_out_len, w_out_len
 
-
-def reset_weights(m):
-  '''
-    Try resetting model weights to avoid
-    weight leakage.
-  '''
-  for layer in m.children():
-   if hasattr(layer, 'reset_parameters'):
-
-    # print(f'Reset trainable parameters of layer = {layer}')
-    layer.reset_parameters()
-
-def get_labels(): 
-  label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
-                  'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
-  labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
-  
-  return labels, label_names
-
-
 def evaluation(y_true, y_pred, initial=dict()): 
-  labels, label_names = get_labels()
   #standard classfication report - precision, recall, f1-score, support
 
-  res = classification_report(y_true, y_pred, output_dict=True, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0)
+  res = classification_report(y_true, y_pred, output_dict=True, labels=range(len(labels)), target_names=label_names, zero_division=0)
   res["emr"] = emr(y_true, y_pred)
   res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
   res["hamming_loss"] = hamming_loss(y_true, y_pred)
@@ -49,7 +29,7 @@ def evaluation(y_true, y_pred, initial=dict()):
   res_values = np.concatenate((np.array(list(initial.values())), res_values))
 
 
-  # print(classification_report(y_true, y_pred, labels=range(len(get_labels()[0])), target_names=get_labels()[1], zero_division=0))
+  # print(classification_report(y_true, y_pred, labels=range(len(labels)), target_names=label_names, zero_division=0))
   # print("MULTI-LABEL METRICS")
   # print("EMR: {}".format(res["emr"]))
   # print("1/0Loss: {}".format(res["one_zero_loss"]))
