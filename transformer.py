@@ -4,7 +4,7 @@ import numpy as np
 
 #data format (sample, band, time, height, width)
 class CNNVIT(nn.Module):
-   def __init__(self, bands=3, labels=24, time =6):
+   def __init__(self, bands=3, labels=24, time =6, device=None):
       super(CNNVIT, self).__init__()
 
       #channels
@@ -105,10 +105,8 @@ class CNNVIT(nn.Module):
       
       logits = self.fc1_linear(time_avg) 
       probs = self.sigmoid(logits)
-      print(logits)
-      #print(cnn_seq.size())
-      #print(len(cnn_seq[0]))
-      #print(len(cnn_seq[1]))
-      #print(len(cnn_seq[2]))
+      return logits, probs
+
+
 
       #data format (sample x band x height x width)
