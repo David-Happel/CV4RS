@@ -78,7 +78,10 @@ class ProcessData:
                     for y in np.arange(0, src.height, window_step):  
                         window = Window(x,y,imageWidth, imageHeight)
                         w = src.read(1, window=window)
-                        labels.append(list(np.unique(w)))
+                        sample_labels, sample_label_counts = np.unique(w, return_counts=True)
+                        # Remove label that only occurs in 0.2 percent of the image
+                        sample_label_mask = sample_label_counts > ((w.shape[0] * w.shape[1])/500)
+                        labels.append(list(sample_labels[sample_label_mask]))
                   
 
         #image ids dataframe
