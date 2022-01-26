@@ -28,12 +28,12 @@ def evaluation(y_true, y_pred, initial=dict()):
   res_names = np.concatenate((np.array(list(initial.keys())), res_names))
   res_values = np.concatenate((np.array(list(initial.values())), res_values))
 
-
-  # print(classification_report(y_true, y_pred, labels=range(len(labels)), target_names=label_names, zero_division=0))
-  # print("MULTI-LABEL METRICS")
-  # print("EMR: {}".format(res["emr"]))
-  # print("1/0Loss: {}".format(res["one_zero_loss"]))
-  # print("Hamming Loss: {}".format(res["hamming_loss"]))
+  print("REPORT")
+  print(classification_report(y_true, y_pred, labels=range(len(labels)), target_names=label_names, zero_division=0))
+  print("MULTI-LABEL METRICS")
+  print("EMR: {}".format(res["emr"]))
+  print("1/0Loss: {}".format(res["one_zero_loss"]))
+  print("Hamming Loss: {}".format(res["hamming_loss"]))
   return res_values, res_names
 
 def scalars_from_scores(writer, scores, score_names, suffix=""):
