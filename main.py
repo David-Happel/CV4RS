@@ -19,7 +19,7 @@ from arg_parser import arguments
 from torch.utils.tensorboard import SummaryWriter
 #Models
 from baseline_simple import C3D as bl
-from CNN_LSTM_V1 import CNN_LSTM as cnn_lstm
+from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
 
 from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
