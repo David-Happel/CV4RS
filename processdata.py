@@ -17,7 +17,6 @@ from dataset import labels as unique_labels, label_names
 import report
 
 print = report.log
-file_type = 'tiff'
 
 class ProcessData:
     def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(0,36,1)):

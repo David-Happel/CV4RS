@@ -15,5 +15,5 @@ X = t.rand(100, 3, 6, 224, 224)
 test = vit()
 #summary(test, (100, 3, 6, 224, 224))
 test(X)
-
+#test.describe()
 

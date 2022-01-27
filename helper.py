@@ -4,10 +4,19 @@ import numpy as np
 import report
 import flatten_json
 from dataset import labels, label_names
+import math
 
 print = report.log
 
-def output_size(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0): 
+def output_size(n, k, p=0, s = 1):
+  #[(W−K+2P)/S]+1
+  #n = width and height dimensions 
+  #k = kernel size 
+  #p = padding 
+  #s = stride
+  return math.floor(((n + (2*p) - k) / s) + 1)
+
+def output_size_3d(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0): 
     
     d_out_len =  ((d_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
     h_out_len =  ((h_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
