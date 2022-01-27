@@ -24,14 +24,14 @@ class CNNVIT(nn.Module):
       self.d = [(1, 1), (1, 1), (1, 1), (1, 1)]
 
       dim = self.input_dim
-      for i, ch in enumerate(self.chs): 
-         old_dim = dim
-         #print("\nnew iteration")
-         #print(old_dim)
-         #print(self.k[i][0])
-         #print(self.s[i][0])
-         dim = h.output_size(old_dim, self.k[i][0], 1, self.s[i][0]) 
-         self.spatial_dim.append(dim)
+      # for i, ch in enumerate(self.chs): 
+      #    old_dim = dim
+      #    #print("\nnew iteration")
+      #    #print(old_dim)
+      #    #print(self.k[i][0])
+      #    #print(self.s[i][0])
+      #    dim = h.output_size(old_dim, self.k[i][0], 1, self.s[i][0]) 
+      #    self.spatial_dim.append(dim)
 
       # network architecture
       # create t CNN models
