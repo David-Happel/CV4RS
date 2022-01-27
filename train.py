@@ -77,6 +77,7 @@ bands = ["GRN", "NIR", "RED"]
 labels, label_names = get_labels()
 
 #train and test tiles
+#train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
 #test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing

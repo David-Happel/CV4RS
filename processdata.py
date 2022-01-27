@@ -77,7 +77,10 @@ class ProcessData:
                     for y in np.arange(0, src.height, window_step):  
                         window = Window(x,y,imageWidth, imageHeight)
                         w = src.read(1, window=window)
-                        labels.append(list(np.unique(w)))
+                        sample_labels, sample_label_counts = np.unique(w, return_counts=True)
+                        # Remove label that only occurs in 0.2 percent of the image
+                        sample_label_mask = sample_label_counts > ((w.shape[0] * w.shape[1])/500)
+                        labels.append(list(sample_labels[sample_label_mask]))
                   
 
         #image ids dataframe
@@ -91,42 +94,4 @@ class ProcessData:
         one_hot_df.to_csv(out_dir + "labels.csv", index=True)           
 
 
-    def read_dataset(self,  data_dir, t_samples=False):
-        label_df = pd.read_csv(os.getcwd()+"/"+data_dir+"/labels.csv",index_col= 0)
-        sample_n = label_df.shape[0]
-
-        filenames = label_df["image_file"]
-
-        data = np.empty((sample_n, len(self.bands), len(self.times), self.imageWidth, self.imageHeight), dtype=float)
-        for i, filename in enumerate(filenames):
-            for band in self.bands:
-                filename_band = f'{filename}_{band}.tif'
-                band_i = self.bands.index(band)
-                with rasterio.open(os.path.join(data_dir, filename_band)) as src:
-                    data[i, band_i] = src.read()[self.times, :, :]
-        
-        #labels
-        unique_labels = list(filter(lambda c: c not in ["image_file"], label_df.columns))
-        #Sample Selection
-        if not t_samples: t_samples = sample_n
-
-        labels = label_df[unique_labels].to_numpy()[:t_samples]
-        data = data[0:t_samples, :]
-
-        data = torch.from_numpy(data).float()
-        labels = torch.from_numpy(labels).float()
-
-        return data, labels
-    
-
-    def train_test_val_split(self, data, labels, test_split, val_split): 
-    
-        X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=test_split, random_state=42)
-        X_train, X_val, y_train, y_val= train_test_split(X_train, y_train, test_size=val_split, random_state=42)
-
-
-        return X_train, X_test, X_val, y_train, y_test, y_val
-
-
-    #def data_labels(data): 
     

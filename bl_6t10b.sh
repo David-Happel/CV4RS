@@ -7,7 +7,7 @@
 #SBATCH --mem=100G
 #SBATCH --partition=gpu_short
 #SBATCH --time=24:00:00
-#SBATCH --gres=gpu:tesla:1
+#SBATCH --gres=gpu:tesla:2
 
 echo "Loading venv..."
 source /home/users/d/davidhappel/venv/cv4rs/bin/activate
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 train.py --epochs 50 --batch_size 10 --timepoints 6 --model bl --name 6t10b --no_process_data
+python3 main.py --epochs 5 --batch_size 15 --timepoints 6 --model bl --name 6t10b --no_process_data
