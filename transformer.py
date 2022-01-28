@@ -76,15 +76,15 @@ class CNNVIT(nn.Module):
       # 4 multi-head self-attention layers each with 64-->512--->64 feedforward network
       transformer_layer = nn.TransformerEncoderLayer(
          d_model=self.ch3, # input feature (frequency) dim after maxpooling 128*563 -> 64*140 (freq*time)
-         nhead=4, # 4 self-attention layers in each multi-head self-attention layer in each encoder block
+         nhead=8, # 4 self-attention layers in each multi-head self-attention layer in each encoder block
          dim_feedforward=512, # 2 linear layers in each encoder block's feedforward network: dim 64-->512--->64
-         dropout=0.4, 
+         dropout=0.1, 
          activation='relu' # ReLU: avoid saturation/tame gradient/reduce compute time
       )
       
       # I'm using 4 instead of the 6 identical stacked encoder layrs used in Attention is All You Need paper
       # Complete transformer block contains 4 full transformer encoder layers (each w/ multihead self-attention+feedforward)
-      self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=4)
+      self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=6)
 
       #data format (sample x band x height x width)
       #Transformer
