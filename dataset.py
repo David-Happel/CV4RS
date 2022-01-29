@@ -21,6 +21,7 @@ class DeepCropDataset(Dataset):
         if t_samples: self.frame = self.frame.head(t_samples)
 
         self.root_dir = root_dir
+        #instantiate class
         self.transform = transform
 
         self.bands = bands
@@ -54,7 +55,6 @@ class DeepCropDataset(Dataset):
 
         if self.transform:
             sample = self.transform(sample)
-
         return sample
 
 
@@ -63,6 +63,15 @@ class ToTensor(object):
 
     def __call__(self, sample):
         data, labels = sample
+        return torch.from_numpy(data).float(), torch.from_numpy(labels).float()
+
+
+class Normalise(object): 
+    #Normalise band values
+
+    def __call__(self, sample):
+        data, labels = sample
+        torchvision.transforms.Normalize(mean, std, inplace=False) 
         return torch.from_numpy(data).float(), torch.from_numpy(labels).float()
     
 

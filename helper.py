@@ -5,6 +5,9 @@ import report
 import flatten_json
 from dataset import labels, label_names
 import math
+from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
+from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
+import torch
 
 print = report.log
 
@@ -72,3 +75,23 @@ def hamming_loss(y_true, y_pred):
     
     return hl_num/hl_den
 
+
+
+def get_mean_std(times, batch_size = 1000):
+
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor())
+
+    loader= DataLoader(train_dataset, batch_size=batch_size)
+    ch_sum, ch_sqr_sum = 0, 0
+    
+    for batch in loader:
+        data, labels = batch
+        print(data.shape)
+        print(type(data))
+        ch_sum += torch.mean(data, dim = [0, 2, 3, 4])
+        ch_sqr_sum += torch.mean(data**2, dim = [0, 2, 3, 4])
+    
+    mean = ch_sum/batch_size
+    std = (ch_sqr_sum/batch_size - mean*2)*0.5
+    
+    return mean, std

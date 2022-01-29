@@ -23,6 +23,7 @@ from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
 
 from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
+from torchvision import transforms
 
 print = report.log
 
@@ -93,10 +94,21 @@ def main():
     if process_data:
         pre_processing(dl, train_tiles=train_tiles, test_tiles=test_tiles)
 
+
+
+    #Data Tranformations
+    #mean and stdev - use helper function to re-calculate
+    mean = [2.2148, 7.9706, 2.2510]
+    std = [ 1021.1434, 11697.6494,  1213.0621]
+    data_transform = transforms.Compose([
+     ToTensor(),
+     transforms.Normalize(mean, std, inplace=False)
+    ])
     # Read in pre-processed dataset
     # data format (sample, band, time, height, width)
+
     print("Loading data")
-    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), t_samples=t_samples)
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples)
     print(f'Samples: {len(train_dataset)}')
 
     # Calculate Class Weights
