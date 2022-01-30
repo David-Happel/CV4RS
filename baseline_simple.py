@@ -35,7 +35,7 @@ class C3D(nn.Module):
     ================================================================
     """
 
-    def __init__(self, bands=3, labels=24, times=6, device="cpu"):
+    def __init__(self, bands=3, labels=24, time=6, device="cpu"):
         super(C3D, self).__init__()
 
         self.conv1 = nn.Conv3d(bands, 32, kernel_size=(3, 3, 3), padding=(1, 1, 1))
