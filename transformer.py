@@ -2,10 +2,11 @@ import torch.nn as nn
 import torch
 import numpy as np
 import helper as h
+import math
 
 #data format (sample, band, time, height, width)
 class CNNVIT(nn.Module):
-   def __init__(self, bands=3, labels=24, time =6, device=None):
+   def __init__(self, bands=3, labels=24, time =6, device=None, d_model = 128):
       super(CNNVIT, self).__init__()
       self.spatial_dim = []
       self.input_dim = 224
@@ -23,7 +24,7 @@ class CNNVIT(nn.Module):
       self.d1, self.d2, self.d3, self.d4 = (1, 1), (1, 1), (1, 1), (1, 1)
       self.d = [(1, 1), (1, 1), (1, 1), (1, 1)]
 
-      dim = self.input_dim
+      #dim = self.input_dim
       # for i, ch in enumerate(self.chs): 
       #    old_dim = dim
       #    #print("\nnew iteration")
@@ -59,17 +60,13 @@ class CNNVIT(nn.Module):
          #nn.Conv2d(in_channels=self.ch3, out_channels=self.ch3, kernel_size=1, stride=1),
          nn.MaxPool2d(kernel_size=2),
       )
-      """
-      self.conv4 = nn.Sequential(
-         nn.Conv2d(in_channels=self.ch3, out_channels=self.ch4, kernel_size=self.k4, stride=self.s4, padding=self.p4, dilation=self.d4),
-         #nn.BatchNorm2d(self.ch4, momentum=0.01),
-         nn.ReLU(inplace=True),
-         #nn.Conv2d(in_channels=self.ch4, out_channels=self.ch4, kernel_size=1, stride=1),
-         #nn.AdaptiveAvgPool2d((1,1)),
-      )
-      """
-      
+
+      # Getting rid of spatial dimensions by pooling the activation map
       self.global_max_pool = nn.MaxPool2d(kernel_size=14)
+
+      #TRANSFORMER 
+      #positional encoder
+      self.pos_encoder = PositionalEncoding(d_model, dropout = 0)
 
       # define single transformer encoder layer
       # self-attention + feedforward network from "Attention is All You Need" paper
@@ -122,13 +119,17 @@ class CNNVIT(nn.Module):
 
       cnn_seq = torch.stack(cnn_seq, dim=0)
       #print(cnn_seq.size())
-      cnn_seq = torch.squeeze(cnn_seq)
+      out = torch.squeeze(cnn_seq)
       #print(cnn_seq.size())
+
       #TRANSFORMER MODULE
+      #positional encoder 
+ 
+      out = self.pos_encoder(out)
       #input - timepoints, samples, features
-      transformer_output = self.transformer_encoder(cnn_seq)
+      out = self.transformer_encoder(out)
       #get time averaged features
-      time_avg = torch.mean(transformer_output, dim = 0)
+      time_avg = torch.mean(out, dim = 0)
       
       #LINEAR MODULE
       out = self.fc1_linear(time_avg) 
@@ -142,3 +143,25 @@ class CNNVIT(nn.Module):
       for i in range(len(self.chs)): 
          print("Convolution")
          print(self.spatial_dim[i])
+
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        """
+        Args:
+            x: Tensor, shape [seq_len, batch_size, embedding_dim]
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)

@@ -11,10 +11,10 @@ from torchsummary import summary
 from helper import *
 from torchvision import transforms
 #input shape : data format (sample, band, time, height, width)
-#X = t.rand(100, 3, 6, 224, 224)
-#test = vit()
+X = t.rand(100, 3, 6, 224, 224)
+test = vit()
 #summary(test, (100, 3, 6, 224, 224))
-#test(X)
+test(X)
 #test.describe()
 
 
@@ -30,24 +30,15 @@ print(std_dev.shape)
 
 print(mean)
 print(std_dev)
-"""
+
 mean = [2.2148, 7.9706, 2.2510]
 std = [ 1021.1434, 11697.6494,  1213.0621]
 data_transform = transforms.Compose([
     ToTensor(),
     transforms.Normalize(mean, std, inplace=False)
 ])
+"""
 # Read in pre-processed dataset
 # data format (sample, band, time, height, width)
 
-print("Loading data")
-train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=100)
-print(f'Samples: {len(train_dataset)}')
-print(train_dataset)
 
-train_batches = DataLoader(
-    train_dataset, 
-    batch_size=16)
-
-for i in train_batches: 
-    print(i)
