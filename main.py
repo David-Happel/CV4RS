@@ -123,8 +123,8 @@ def main():
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
-    train_scores = np.empty((k_folds, epochs, 61))
-    val_scores =  np.empty((k_folds, epochs, 61))
+    train_scores = np.empty((k_folds, epochs, 45))
+    val_scores =  np.empty((k_folds, epochs, 45))
     score_names = None
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_dataset)):
 
@@ -181,7 +181,7 @@ def main():
     print("===== TESTING ======================")
     #Actual test performance
     # Load Testing Data
-    test_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/test", times=times, transform=ToTensor(), t_samples=t_samples)
+    test_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/test", times=times, transform=data_transform, t_samples=t_samples)
     test_batches = DataLoader(
                         test_dataset,
                         batch_size=batch_size)
