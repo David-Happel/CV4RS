@@ -268,6 +268,8 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
             outputs, probs = model(inputs)
             
             # loss
+            print(outputs.size())
+            print(labels.size())
             loss = criterion(outputs, labels)
             
             # predicted labels
