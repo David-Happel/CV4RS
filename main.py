@@ -15,6 +15,7 @@ from processdata import ProcessData
 from helper import evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
+from torchvision import transforms
 
 from torch.utils.tensorboard import SummaryWriter
 #Models
@@ -22,7 +23,7 @@ from baseline_simple import C3D as bl
 from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
 
-from dataset import DeepCropDataset, ToTensor, labels as unique_labels, label_names
+from dataset import DeepCropDataset, ToTensor, Normalise, labels as unique_labels, label_names
 
 print = report.log
 
@@ -76,7 +77,7 @@ times = range(0,36,t_step)
 bands = ["GRN", "NIR", "RED"]
 
 #train and test tiles
-train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0043","X0069_Y0041","X0068_Y0042","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
+train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
 test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
@@ -93,10 +94,23 @@ def main():
     if process_data:
         pre_processing(dl, train_tiles=train_tiles, test_tiles=test_tiles)
 
+
+
+    #Data Tranformations
+    #mean and stdev - use helper function to re-calculate
+    mean = [2.2148, 7.9706, 2.2510]
+    std = [ 1021.1434, 11697.6494,  1213.0621]
+    data_transform = transforms.Compose([
+    #Samples to tensors
+     ToTensor(),
+     #Normalise values for each band
+     Normalise(mean, std)
+    ])
     # Read in pre-processed dataset
     # data format (sample, band, time, height, width)
+
     print("Loading data")
-    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), t_samples=t_samples)
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples)
     print(f'Samples: {len(train_dataset)}')
 
     # Calculate Class Weights
@@ -109,8 +123,8 @@ def main():
 
     kfold = KFold(n_splits=k_folds, shuffle=True)
 
-    train_scores = np.empty((k_folds, epochs, 101))
-    val_scores =  np.empty((k_folds, epochs, 101))
+    train_scores = np.empty((k_folds, epochs, 61))
+    val_scores =  np.empty((k_folds, epochs, 61))
     score_names = None
     for fold, (train_ids, test_ids) in enumerate(kfold.split(train_dataset)):
 
@@ -128,7 +142,7 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-        model = model_class(bands=len(bands), labels=len(class_weights), device=device).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), times=6, device=device).to(device)
 
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
