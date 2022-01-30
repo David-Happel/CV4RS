@@ -3,11 +3,19 @@ import pandas as pd
 import numpy as np
 import os
 import torch
+# from torchvision.functional import normalize
 import rasterio
 
-label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
-                  'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
-labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
+# All labels
+# label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Barley', 'Spring Oat', 'Other Spring Cereals', 'Winter Rapeseed', 'Legume', 'Sunflower',
+#                   'Sugar Beet', 'Maize other', 'Maize for grain', 'Potato', 'Strawberry', 'Asparagus', 'Onion', 'Carrot', 'Other leafy Vegetables']
+# labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
+
+# Selected Labels
+label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Oat', 'Winter Rapeseed', 'Legume',
+                  'Maize other', 'Maize for grain']
+labels = [10, 31, 32, 33, 34, 42, 50, 60, 91, 92]
+
 class DeepCropDataset(Dataset):
     def __init__(self, csv_file, root_dir, bands=["GRN", "NIR", "RED"], times=range(0,36,1), transform=None, t_samples=None):
         """
@@ -67,12 +75,19 @@ class ToTensor(object):
 
 
 class Normalise(object): 
-    #Normalise band values
+    #Normalise values for each band
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+        super().__init__()
 
-    def __call__(self, sample):
+
+    def __call__(self, sample):        
         data, labels = sample
-        torchvision.transforms.Normalize(mean, std, inplace=False) 
-        return torch.from_numpy(data).float(), torch.from_numpy(labels).float()
+        # For every channel, subtract the mean, and divide by the standard deviation
+        for t, m, s in zip(data, self.mean, self.std):
+            t.sub_(m).div_(s)
+        return (data, labels)
     
 
         
