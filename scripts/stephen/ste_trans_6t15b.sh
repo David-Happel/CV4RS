@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/users/m/moran/venv/cv4rs/out/trans_6t15b.out
+#SBATCH -o /home/users/m/moran/venv/cv4rs/ste_trans_6t15b.out
 #SBATCH --chdir=/home/users/m/moran/venv/cv4rs
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
