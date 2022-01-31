@@ -13,7 +13,6 @@ echo "Loading venv..."
 source /home/users/m/moran/venv/cv4rs/bin/activate
 #source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 
-
 echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
