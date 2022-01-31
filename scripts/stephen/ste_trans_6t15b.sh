@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/CV4RS/trans_6t15b.out
-#SBATCH --chdir=/home/users/d/davidhappel/CV4RS
+#SBATCH -o /home/users/m/moran/venv/cv4rs/out/trans_6t15b.out
+#SBATCH --chdir=/home/users/m/moran/venv/cv4rs
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
