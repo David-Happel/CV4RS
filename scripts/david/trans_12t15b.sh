@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -o /home/users/m/moran/venv/CV4RS/trans_12t15b.out
-#SBATCH --chdir=/home/users/m/moran/CV4RS
+#SBATCH -o /home/users/d/davidhappel/CV4RS/trans_12t15b.out
+#SBATCH --chdir=/home/users/d/davidhappel/CV4RS/
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
@@ -10,7 +10,6 @@
 #SBATCH --gres=gpu:tesla:2
 
 echo "Loading venv..."
-# source /home/users/m/moran/venv/cv4rs/bin/activate
 source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 
 echo "Loading cuda..."
