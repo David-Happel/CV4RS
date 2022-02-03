@@ -43,27 +43,39 @@ print("Working dir: " + os.getcwd())
 # Change if need to process the data
 process_data = False if args.no_process_data == False else True
 
+writer_suffix = args.name or ""
+print(f'Run Name: {writer_suffix}')
+
+writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
 #Restriction of samples to take
 t_samples = args.samples or None
 print(f'Samples: {t_samples}')
+writer.add_text('samples', f'Samples: {t_samples}')
 
 calculate_class_weights = False if args.no_class_weights == False else True
 print(f'Class Weights: {calculate_class_weights}')
+writer.add_text('Class Weights', f'Class Weights: {calculate_class_weights}')
 
 epochs = args.epochs or 100
 print(f'Epochs: {epochs}')
+writer.add_text('Epochs', f'Epochs: {epochs}')
 
 k_folds = args.folds or 5
 print(f'Folds: {k_folds}')
+writer.add_text('Folds', f'Folds: {k_folds}')
 
 batch_size = args.batch_size or 10
 print(f'Batch Size: {batch_size}')
+writer.add_text('Batch Size', f'Batch Size: {batch_size}')
 
-writer_suffix = args.name or ""
-print(f'Run Comment: {writer_suffix}')
+comment = args.comment or ""
+print(f'Comment: {comment}')
+writer.add_text('Run Comment', f'Comment: {comment}')
 
 timepoints = args.timepoints or 6
 print(f'Timepoints: {timepoints}')
+writer.add_text('Timepoints', f'Timepoints: {timepoints}')
+
 
 model_name = args.model or "bl"
 print(f'Model_Name: {model_name}')
@@ -84,7 +96,7 @@ test_tiles = ["X0071_Y0042"]
 #train_tiles = ["X0071_Y0043"]
 #test_tiles = ["X0071_Y0042"]
 
-writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
+
 
 ### Main Function
 def main():

@@ -25,6 +25,9 @@ def arguments():
     parser.add_argument('--name', type=str,
                     help='filename_suffix')
 
+    parser.add_argument('--comment', type=str,
+                    help='comment')
+
     parser.add_argument('--model', type=str,
                 help='bl/lstm/trans')
 
