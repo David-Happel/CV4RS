@@ -11,68 +11,58 @@ class CNNVIT(nn.Module):
       self.spatial_dim = []
       self.input_dim = 224
       #channels
-      self.ch1, self.ch2, self.ch3, self.ch4 = 32, 64, 128, 256
-      self.chs = [32, 64, 128, 256]
+      self.ch1, self.ch2, self.ch3, self.ch4 = 64, 128, 256, 512
+      self.chs = [64, 128, 256]
       #network params
       # height x width 
       self.k1, self.k2, self.k3, self.k4 = (3, 3), (3, 3), (3, 3), (3, 3)
       self.k = [(3, 3), (3, 3), (3, 3), (3, 3)]
-      self.s1, self.s2, self.s3, self.s4 = (2, 2), (1, 1), (1, 1), (1, 1)
+      self.s1, self.s2, self.s3, self.s4 = (1, 1), (1, 1), (1, 1), (1, 1)
       self.s = [(2, 2), (1, 1), (1, 1), (1, 1)]
       self.p1, self.p2, self.p3, self.p4 = (1, 1), (1, 1), (1, 1), (1, 1)
       self.p = [(1, 1), (1, 1), (1, 1), (1, 1)]
       self.d1, self.d2, self.d3, self.d4 = (1, 1), (1, 1), (1, 1), (1, 1)
       self.d = [(1, 1), (1, 1), (1, 1), (1, 1)]
 
-      #dim = self.input_dim
-      # for i, ch in enumerate(self.chs): 
-      #    old_dim = dim
-      #    #print("\nnew iteration")
-      #    #print(old_dim)
-      #    #print(self.k[i][0])
-      #    #print(self.s[i][0])
-      #    dim = h.output_size(old_dim, self.k[i][0], 1, self.s[i][0]) 
-      #    self.spatial_dim.append(dim)
-
       # network architecture
       # create t CNN models
 
       self.conv1 = nn.Sequential(
          nn.Conv2d(in_channels=bands, out_channels=self.ch1, kernel_size=self.k1, stride=self.s1, padding=self.p1, dilation=self.d1),
-         #nn.BatchNorm2d(self.ch1, momentum=0.01),
+         nn.BatchNorm2d(self.ch1, momentum=0.01),
          nn.ReLU(inplace=True),
          #nn.Conv2d(in_channels=self.ch1, out_channels=self.ch1, kernel_size=1, stride=1),
-         nn.MaxPool2d(kernel_size=2),
+         nn.MaxPool2d(kernel_size=3, stride = 2),
       ) 
 
       self.conv2 = nn.Sequential(
          nn.Conv2d(in_channels=self.ch1, out_channels=self.ch2, kernel_size=self.k2, stride=self.s2, padding=self.p2, dilation=self.d2),
-         #nn.BatchNorm2d(self.ch2, momentum=0.01),
+         nn.BatchNorm2d(self.ch2, momentum=0.01),
          nn.ReLU(inplace=True),
          #nn.Conv2d(in_channels=self.ch2, out_channels=self.ch2, kernel_size=1, stride=1),
-         nn.MaxPool2d(kernel_size=2),
+         nn.MaxPool2d(kernel_size=3, stride = 2),
         )
       
       self.conv3 = nn.Sequential(
          nn.Conv2d(in_channels=self.ch2, out_channels=self.ch3, kernel_size=self.k3, stride=self.s3, padding=self.p3, dilation=self.d3),
-         #nn.BatchNorm2d(self.ch3, momentum=0.01),
+         nn.BatchNorm2d(self.ch3, momentum=0.01),
          nn.ReLU(inplace=True),
          #nn.Conv2d(in_channels=self.ch3, out_channels=self.ch3, kernel_size=1, stride=1),
-         nn.MaxPool2d(kernel_size=2),
+         nn.MaxPool2d(kernel_size=3, stride = 2),
       )
 
       # Getting rid of spatial dimensions by pooling the activation map
-      self.global_max_pool = nn.MaxPool2d(kernel_size=14)
+      self.global_max_pool = nn.MaxPool2d(kernel_size=27)
 
       #TRANSFORMER 
       #positional encoder
-      self.pos_encoder = PositionalEncoding(d_model, dropout = 0)
+      self.pos_encoder = PositionalEncoding(self.chs[-1], dropout = 0)
 
       # define single transformer encoder layer
       # self-attention + feedforward network from "Attention is All You Need" paper
-      # 4 multi-head self-attention layers each with 64-->512--->64 feedforward network
+      # multi-head self-attention layers each with self.ch3-->512--->self.ch3 feedforward network
       transformer_layer = nn.TransformerEncoderLayer(
-         d_model=self.ch3, # input feature (frequency) dim after maxpooling 128*563 -> 64*140 (freq*time)
+         d_model=self.ch3, # input feature (frequency) dim after maxpooling 
          nhead=8, # 4 self-attention layers in each multi-head self-attention layer in each encoder block
          dim_feedforward=512, # 2 linear layers in each encoder block's feedforward network: dim 64-->512--->64
          dropout=0.1, 
@@ -124,7 +114,6 @@ class CNNVIT(nn.Module):
 
       #TRANSFORMER MODULE
       #positional encoder 
- 
       out = self.pos_encoder(out)
       #input - timepoints, samples, features
       out = self.transformer_encoder(out)
