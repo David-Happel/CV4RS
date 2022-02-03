@@ -11,10 +11,12 @@ from torchsummary import summary
 from helper import *
 from torchvision import transforms
 #input shape : data format (sample, band, time, height, width)
-X = t.rand(100, 3, 6, 224, 224)
+X = t.rand(10, 3, 18, 224, 224)
 test = vit()
 #summary(test, (100, 3, 6, 224, 224))
-test(X)
+res = test(X)
+print(res[0].shape)
+print(res[1].shape)
 #test.describe()
 
 
