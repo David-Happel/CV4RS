@@ -64,8 +64,8 @@ class C3D(nn.Module):
             self.fc6 = nn.Linear(12544, 4096)
         if time == 12:
             self.fc6 = nn.Linear(25088, 4096)
-        if time == 32:
-            self.fc6 = nn.Linear(62720, 4096)
+        if time == 36:
+            self.fc6 = nn.Linear(75264, 4096)
 
         self.fc7 = nn.Linear(4096, 4096)
     

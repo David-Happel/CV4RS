@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/CV4RS/lstm_32t15b.out
-#SBATCH --chdir=/home/users/d/davidhappel/CV4RS
+#SBATCH -o /home/users/d/davidhappel/CV4RS/trans_36t15b.out
+#SBATCH --chdir=/home/users/d/davidhappel/CV4RS/
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py --epochs 5 --batch_size 15 --timepoints 32 --model lstm --name lstm_32t15b --no_process_data
+python3 main.py --epochs 5 --batch_size 15 --timepoints 36 --model trans --name stephen_trans_36t15b --no_process_data
