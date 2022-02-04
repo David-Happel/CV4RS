@@ -6,7 +6,7 @@ import math
 
 #data format (sample, band, time, height, width)
 class CNNVIT(nn.Module):
-   def __init__(self, bands=3, labels=24, time =6, device=None, d_model = 128):
+   def __init__(self, bands=3, labels=24, time =6, d_model = 128):
       super(CNNVIT, self).__init__()
       self.spatial_dim = []
       self.input_dim = 224

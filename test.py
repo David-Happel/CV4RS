@@ -10,9 +10,11 @@ from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
 from torchsummary import summary
 from helper import *
 from torchvision import transforms
+from baseline_simple import C3D as bl
 #input shape : data format (sample, band, time, height, width)
-X = t.rand(10, 3, 18, 224, 224)
-test = vit()
+X = t.rand(1, 3, 32, 224, 224)
+test = bl(time=32)
+# test = vit()
 #summary(test, (100, 3, 6, 224, 224))
 res = test(X)
 print(res[0].shape)
