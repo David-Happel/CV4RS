@@ -5,7 +5,7 @@ import torch.nn.functional as f
 
 class CNN_LSTM(nn.Module):
     
-    def __init__(self, bands = 3, labels = 19, time=6, device=None):
+    def __init__(self, bands = 3, labels = 24, device=None):
         
         super(CNN_LSTM, self).__init__()
         
@@ -14,9 +14,10 @@ class CNN_LSTM(nn.Module):
         
         # args. where H = W
         self.kconv, self.kpool, self.kavg = 3, 3, 27
-        self.sconv, self.spool = 2, 1
+        self.sconv, self.spool = 1, 2
         self.p = 1
         self.lstm_h = 128
+        self.lstm_layers = 2
         
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels = bands, out_channels = self.ch1, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
@@ -34,12 +35,15 @@ class CNN_LSTM(nn.Module):
         self.conv3 = nn.Sequential(
             nn.Conv2d(in_channels = self.ch2, out_channels = self.ch3, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
             nn.ReLU(inplace = True),
-            nn.AvgPool2d(kernel_size = self.kavg)
+            nn.MaxPool2d(kernel_size = self.kpool, stride = self.spool)
         )
+
+        self.global_avg_pool = nn.AvgPool2d(kernel_size = self.kavg)
         
         self.lstm = nn.LSTM(
             input_size = self.ch3,
             hidden_size = self.lstm_h,
+            num_layers = self.lstm_layers,
             batch_first = True
         )
         
@@ -57,16 +61,16 @@ class CNN_LSTM(nn.Module):
         for t in range(x.size(2)): 
 
             out = self.conv1(x[:, :, t, :, :])
-            #print('c1: out:', out.shape)
+            #print('c1: out:', out.shape) #[10, 64, 111, 111]
         
             out = self.conv2(out)
-            #print('c2: out:', out.shape)
+            #print('c2: out:', out.shape) #[10, 128, 55, 55]
         
             out = self.conv3(out)          
-            #print('c3: out:', out.shape)
+            #print('c3: out:', out.shape) #[10, 256, 27, 27]
 
-            out.view(out.size(0), -1)
-            #print('out shape after view:', out.shape)
+            out = self.global_avg_pool(out)
+            #print('avg. pool:', out.shape) #[10, 256, 1, 1]
             
             CNN_sequence.append(out)
         
@@ -87,9 +91,9 @@ class CNN_LSTM(nn.Module):
         
         # pitching to LSTM
         out, (h_n, c_n) = self.lstm(CNN_sequence[:, :, :], None)
-        #print('LSTM 1 out:', out.shape)
+        #print('LSTM out:', out.shape)
         
-        # take output of last seq element only
+        # take output of last sequence element only
         out = self.fc(out[:, -1, :])
         #print('out fc: ', out.shape)
         #print(out)
