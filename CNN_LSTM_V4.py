@@ -5,7 +5,7 @@ import torch.nn.functional as f
 
 class CNN_LSTM(nn.Module):
     
-    def __init__(self, bands = 3, labels = 24, device=None):
+    def __init__(self, bands = 3, labels = 24, lstm_layers = 1, device=None):
         
         super(CNN_LSTM, self).__init__()
         
@@ -16,9 +16,15 @@ class CNN_LSTM(nn.Module):
         self.kconv, self.kpool, self.kavg = 3, 3, 27
         self.sconv, self.spool = 1, 2
         self.p = 1
-        self.lstm_h = 128
-        self.lstm_layers = 2
-        
+        self.lstm_layers = lstm_layers
+
+        if lstm_layers == 1:
+            self.lstm_h = 128
+        if lstm_layers == 2:
+            self.lstm_h = 64
+        if lstm_layers == 3:
+            self.lstm_h = 32
+
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels = bands, out_channels = self.ch1, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
             nn.BatchNorm2d(num_features = self.ch1),
@@ -28,12 +34,14 @@ class CNN_LSTM(nn.Module):
         
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels = self.ch1, out_channels = self.ch2, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
+            nn.BatchNorm2d(num_features = self.ch2),
             nn.ReLU(inplace = True),
             nn.MaxPool2d(kernel_size = self.kpool, stride = self.spool)
         )
         
         self.conv3 = nn.Sequential(
             nn.Conv2d(in_channels = self.ch2, out_channels = self.ch3, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
+            nn.BatchNorm2d(num_features = self.ch3),
             nn.ReLU(inplace = True),
             nn.MaxPool2d(kernel_size = self.kpool, stride = self.spool)
         )
@@ -44,7 +52,8 @@ class CNN_LSTM(nn.Module):
             input_size = self.ch3,
             hidden_size = self.lstm_h,
             num_layers = self.lstm_layers,
-            batch_first = True
+            batch_first = True,
+            dropout = 0.5
         )
         
         self.fc = nn.Linear(
