@@ -5,7 +5,7 @@ import torch.nn.functional as f
 
 class CNN_LSTM(nn.Module):
     
-    def __init__(self, bands = 3, labels = 24, lstm_layers = 1, device=None):
+    def __init__(self, bands = 3, labels = 24, lstm_layers = 3, device=None):
         
         super(CNN_LSTM, self).__init__()
         
@@ -20,10 +20,13 @@ class CNN_LSTM(nn.Module):
 
         if lstm_layers == 1:
             self.lstm_h = 128
+            self.dropout = 0.0
         if lstm_layers == 2:
             self.lstm_h = 64
+            self.dropout = 0.5
         if lstm_layers == 3:
             self.lstm_h = 32
+            self.dropout = 0.2
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels = bands, out_channels = self.ch1, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
@@ -53,7 +56,7 @@ class CNN_LSTM(nn.Module):
             hidden_size = self.lstm_h,
             num_layers = self.lstm_layers,
             batch_first = True,
-            dropout = 0.5
+            dropout = self.dropout
         )
         
         self.fc = nn.Linear(
