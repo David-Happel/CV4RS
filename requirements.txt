@@ -6,4 +6,5 @@ scikit-learn
 torchsummary
 flatten_json
 tensorboard
+torchvision
 torch==1.7.0+cu101

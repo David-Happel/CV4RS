@@ -157,10 +157,11 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
+
         if model_name == 'lstm':
-            model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers, device=device).to(device)
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
         else:
-            model = model_class(bands=len(bands), labels=len(class_weights), time=6, device=device).to(device)
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
 
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
