@@ -77,33 +77,23 @@ class C3D(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        print(x.shape)
-
-
         h = f.relu(self.conv1(x))
         h = self.pool1(h)
-        print(h.shape)
 
 
         h = f.relu(self.conv2(h))
         h = self.pool2(h)
-        print(h.shape)
        
         h = f.relu(self.conv3(h))
         h = self.pool3(h)
-        print(h.shape)
 
         h = f.relu(self.conv4(h))
         h = self.pool4(h)
-        print(h.shape)
 
         h = f.relu(self.conv5(h))
         h = self.pool5(h)
-        print(h.shape)
 
         h = t.flatten(h, start_dim = 1)
-
-        print(h.shape)
 
         h = f.relu(self.fc6(h))
         h = self.dropout1(h)
