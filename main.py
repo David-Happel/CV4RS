@@ -76,6 +76,9 @@ timepoints = args.timepoints or 6
 print(f'Timepoints: {timepoints}')
 writer.add_text('Timepoints', f'Timepoints: {timepoints}')
 
+lstm_layers = args.lstm_layers or 1
+print(f'lstm_layers: {lstm_layers}')
+writer.add_text('LSTM_layers', f'LSTM_layers: {lstm_layers}')
 
 model_name = args.model or "bl"
 print(f'Model_Name: {model_name}')
@@ -154,7 +157,10 @@ def main():
                         batch_size=batch_size, sampler=test_subsampler)
 
         #model selection
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, device=device).to(device)
+        if model_name == 'lstm':
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers, device=device).to(device)
+        else:
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6, device=device).to(device)
 
         optimizer = optim.Adam(model.parameters(), lr = 0.001)
 

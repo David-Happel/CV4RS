@@ -30,6 +30,9 @@ def arguments():
 
     parser.add_argument('--model', type=str,
                 help='bl/lstm/trans')
+    
+    parser.add_argument('--lstm_layers', type=int,
+                help='lstm_layers')
 
     # Switch
     parser.add_argument('--no_class_weights', action='store_false',
