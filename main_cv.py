@@ -96,8 +96,10 @@ train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0042","X0068_Y0
 test_tiles = ["X0071_Y0042"]
 
 # Uncomment for testing
-# train_tiles = ["X0071_Y0043"]
-# test_tiles = ["X0071_Y0042"]
+#train_tiles = ["X0071_Y0043"]
+#test_tiles = ["X0071_Y0042"]
+
+
 
 ### Main Function
 def main():
@@ -123,66 +125,71 @@ def main():
     # data format (sample, band, time, height, width)
 
     print("Loading data")
-    dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples)
-
-    # Select a random subset of the dataset to be validation data
-    val_split = 0.2
-    val_size = int(len(dataset) * val_split)
-    train_size= len(dataset) - val_size
-    train_set, val_set = t.utils.data.random_split(dataset, [val_size, train_size], generator=t.Generator().manual_seed(42))
-    
-    print(f'Samples: {len(dataset)} - Train: {train_size}, Val:{val_size}')
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples)
+    print(f'Samples: {len(train_dataset)}')
 
     # Calculate Class Weights
-    class_weights = calc_class_weights(dataset) if calculate_class_weights else np.ones((len(dataset.labels)))
-    print(f'Class Counts: {dataset.label_counts}')
+    class_weights = calc_class_weights(train_dataset) if calculate_class_weights else np.ones((len(train_dataset.labels)))
+    print(f'Class Counts: {train_dataset.label_counts}')
     print(f'Class Weights: {class_weights}')
 
-    #model selection
-    if model_name == 'lstm':
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
-    else:
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
-
-    # Optimizers
     #TRAINING
     criterion = nn.BCEWithLogitsLoss(pos_weight=t.from_numpy(class_weights).to(device))
-    optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
-    # Define data loaders for training and testing data in this fold
-    train_batches = DataLoader(
-                    train_set, 
-                    batch_size=batch_size)
-    val_batches = DataLoader(
-                    val_set,
-                    batch_size=batch_size)
+    kfold = KFold(n_splits=k_folds, shuffle=True)
 
-    train_scores = np.empty((epochs, 45))
-    val_scores =  np.empty((epochs, 45))
+    train_scores = np.empty((k_folds, epochs, 45))
+    val_scores =  np.empty((k_folds, epochs, 45))
     score_names = None
-    saved_epoch = 0
-    best_f1 = 0
-    for epoch in range(epochs):  # loop over the dataset multiple times
-        print(f'---- EPOCH: {epoch+1} -------------------------------')
-        # TRAIN EPOCH
-        train_score, train_score_names = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
-        train_scores[epoch] = train_score
-        
-        score_names = train_score_names
+    for fold, (train_ids, test_ids) in enumerate(kfold.split(train_dataset)):
 
-        # Val EPOCH
-        val_score, _ = predict(model, val_batches, device=device, criterion=criterion)
-        val_scores[epoch] = val_score
-        
-        # Save model if best f1 score of epoch
-        sample_f1 = val_score[list(score_names).index('samples avg_f1-score')]
-        if(sample_f1 > best_f1):
-            saved_epoch = epoch+1
-            save_path = f'{report.report_dir}/saved_model/model.pth'
-            t.save(model.state_dict(), save_path)
-            best_f1 = sample_f1
-            print(f'Saved Epoch model for {epoch+1}')
+        print(f'======= FOLD: {fold+1} ==================================')
+        # Sample elements randomly from a given list of ids, no replacement.
+        train_subsampler = SubsetRandomSampler(train_ids)
+        test_subsampler = SubsetRandomSampler(test_ids)
 
+        # Define data loaders for training and testing data in this fold
+        train_batches = DataLoader(
+                        train_dataset, 
+                        batch_size=batch_size, sampler=train_subsampler)
+        test_batches = DataLoader(
+                        train_dataset,
+                        batch_size=batch_size, sampler=test_subsampler)
+
+        #model selection
+        if model_name == 'lstm':
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
+        else:
+            model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
+
+        # model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints).to(device)
+
+        optimizer = optim.Adam(model.parameters(), lr = 0.001)
+
+        saved_epoch = 0
+        best_f1 = 0
+        for epoch in range(epochs):  # loop over the dataset multiple times
+            print(f'---- EPOCH: {epoch+1} -------------------------------')
+            # TRAIN EPOCH
+            train_score, train_score_names = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
+            train_scores[fold, epoch] = train_score
+            
+            score_names = train_score_names
+
+            # TEST EPOCH
+            test_score, _ = predict(model, test_batches, device=device, criterion=criterion)
+            val_scores[fold, epoch] = test_score
+            
+            # Save model if best f1 score of epoch
+            sample_f1 = test_score[list(score_names).index('samples avg_f1-score')]
+            if(sample_f1 > best_f1):
+                saved_epoch = epoch+1
+                save_path = f'{report.report_dir}/saved_model/model-fold-{fold+1}.pth'
+                t.save(model.state_dict(), save_path)
+                best_f1 = sample_f1
+                print(f'Saved Epoch model for {epoch+1}')
+
+        print(f'Model saved for Fold {fold+1}: epoch {saved_epoch}')
     
     np.save(f'{report.report_dir}/train_scores.npy', train_scores)
     np.save(f'{report.report_dir}/val_scores.npy', val_scores)
@@ -199,12 +206,10 @@ def main():
                         test_dataset,
                         batch_size=batch_size)
 
-    # Test model on testing data
+    # Test latest fold model on testing data
     test_score, _ = predict(model, test_batches, device=device, criterion=criterion)
     np.save(f'{report.report_dir}/test_score.npy', test_score)
     np.save(f'{report.report_dir}/score_names.npy', score_names)
-    for score_i, score in enumerate(test_score):
-        writer.add_scalar(f'{score_names[score_i]}/test', score)
 
     # writer.add_graph(model, test_dataset[:5].to(device))
     writer.close()
