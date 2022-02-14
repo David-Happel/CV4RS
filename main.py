@@ -80,6 +80,10 @@ lstm_layers = args.lstm_layers or 1
 print(f'lstm_layers: {lstm_layers}')
 writer.add_text('LSTM_layers', f'LSTM_layers: {lstm_layers}')
 
+trans_layers = args.trans_layers or 1
+print(f'trans_layers: {trans_layers}')
+writer.add_text('TRANS_layers', f'TRANS_layers: {trans_layers}')
+
 model_name = args.model or "bl"
 print(f'Model_Name: {model_name}')
 model_names = ["bl", "lstm", "trans"]
@@ -141,6 +145,8 @@ def main():
     #model selection
     if model_name == 'lstm':
         model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
+    if model_name == 'trans':
+        model = model_class(bands=len(bands), labels=len(class_weights), time=6, encoder_layers=self.encoder_layers).to(device)
     else:
         model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
 
