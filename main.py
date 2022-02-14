@@ -134,7 +134,7 @@ def main():
     print(f'Samples: {len(dataset)} - Train: {train_size}, Val:{val_size}')
 
     # Calculate Class Weights
-    class_weights = calc_class_weights(dataset) if calculate_class_weights else np.ones((len(dataset.labels)))
+    class_weights = calc_class_weights(dataset) if calculate_class_weights else np.ones((len(d>ataset.labels)))
     print(f'Class Counts: {dataset.label_counts}')
     print(f'Class Weights: {class_weights}')
 

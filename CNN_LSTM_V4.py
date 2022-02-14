@@ -23,11 +23,11 @@ class CNN_LSTM(nn.Module):
             self.lstm_h = 128
             self.dropout = 0.0
         if lstm_layers == 2:
-            self.lstm_h = 64
-            self.dropout = 0.5
+            self.lstm_h = 128
+            self.dropout = 0.1
         if lstm_layers == 3:
-            self.lstm_h = 32
-            self.dropout = 0.2
+            self.lstm_h = 128
+            self.dropout = 0.1
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels = bands, out_channels = self.ch1, kernel_size = self.kconv, stride = self.sconv, padding = self.p),
