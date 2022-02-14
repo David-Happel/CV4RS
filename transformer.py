@@ -6,48 +6,45 @@ import math
 
 #data format (sample, band, time, height, width)
 class CNNVIT(nn.Module):
-   def __init__(self, bands=3, labels=24, time =6, d_model = 128):
+
+   def __init__(self, bands=3, labels=24, time =6, device=None, d_model = 128, encoder_layers = 6):
       super(CNNVIT, self).__init__()
-      self.spatial_dim = []
-      self.input_dim = 224
+
       #channels
-      self.ch1, self.ch2, self.ch3, self.ch4 = 64, 128, 256, 512
+      self.ch1, self.ch2, self.ch3 = 64, 128, 256
       self.chs = [64, 128, 256]
       #network params
       # height x width 
-      self.k1, self.k2, self.k3, self.k4 = (3, 3), (3, 3), (3, 3), (3, 3)
-      self.k = [(3, 3), (3, 3), (3, 3), (3, 3)]
-      self.s1, self.s2, self.s3, self.s4 = (1, 1), (1, 1), (1, 1), (1, 1)
-      self.s = [(2, 2), (1, 1), (1, 1), (1, 1)]
-      self.p1, self.p2, self.p3, self.p4 = (1, 1), (1, 1), (1, 1), (1, 1)
-      self.p = [(1, 1), (1, 1), (1, 1), (1, 1)]
-      self.d1, self.d2, self.d3, self.d4 = (1, 1), (1, 1), (1, 1), (1, 1)
-      self.d = [(1, 1), (1, 1), (1, 1), (1, 1)]
+      self.k1, self.k2, self.k3 = (3, 3), (3, 3), (3, 3)
+      self.k = [(3, 3), (3, 3), (3, 3)]
+      self.s1, self.s2, self.s3 = (1, 1), (1, 1), (1, 1)
+      self.s = [(2, 2), (1, 1), (1, 1)]
+      self.p1, self.p2, self.p3= (1, 1), (1, 1), (1, 1)
+      self.p = [(1, 1), (1, 1), (1, 1)]
+
+      self.encoder_layers = encoder_layers
 
       # network architecture
       # create t CNN models
 
       self.conv1 = nn.Sequential(
-         nn.Conv2d(in_channels=bands, out_channels=self.ch1, kernel_size=self.k1, stride=self.s1, padding=self.p1, dilation=self.d1),
-         nn.BatchNorm2d(self.ch1, momentum=0.01),
+         nn.Conv2d(in_channels=bands, out_channels=self.ch1, kernel_size=self.k1, stride=self.s1, padding=self.p1),
+         nn.BatchNorm2d(self.ch1),
          nn.ReLU(inplace=True),
-         #nn.Conv2d(in_channels=self.ch1, out_channels=self.ch1, kernel_size=1, stride=1),
          nn.MaxPool2d(kernel_size=3, stride = 2),
       ) 
 
       self.conv2 = nn.Sequential(
-         nn.Conv2d(in_channels=self.ch1, out_channels=self.ch2, kernel_size=self.k2, stride=self.s2, padding=self.p2, dilation=self.d2),
-         nn.BatchNorm2d(self.ch2, momentum=0.01),
+         nn.Conv2d(in_channels=self.ch1, out_channels=self.ch2, kernel_size=self.k2, stride=self.s2, padding=self.p2),
+         nn.BatchNorm2d(self.ch2),
          nn.ReLU(inplace=True),
-         #nn.Conv2d(in_channels=self.ch2, out_channels=self.ch2, kernel_size=1, stride=1),
          nn.MaxPool2d(kernel_size=3, stride = 2),
         )
       
       self.conv3 = nn.Sequential(
-         nn.Conv2d(in_channels=self.ch2, out_channels=self.ch3, kernel_size=self.k3, stride=self.s3, padding=self.p3, dilation=self.d3),
-         nn.BatchNorm2d(self.ch3, momentum=0.01),
+         nn.Conv2d(in_channels=self.ch2, out_channels=self.ch3, kernel_size=self.k3, stride=self.s3, padding=self.p3),
+         nn.BatchNorm2d(self.ch3),
          nn.ReLU(inplace=True),
-         #nn.Conv2d(in_channels=self.ch3, out_channels=self.ch3, kernel_size=1, stride=1),
          nn.MaxPool2d(kernel_size=3, stride = 2),
       )
 
@@ -63,7 +60,7 @@ class CNNVIT(nn.Module):
       # multi-head self-attention layers each with self.ch3-->512--->self.ch3 feedforward network
       transformer_layer = nn.TransformerEncoderLayer(
          d_model=self.ch3, # input feature (frequency) dim after maxpooling 
-         nhead=8, # 4 self-attention layers in each multi-head self-attention layer in each encoder block
+         nhead=8, # 8 self-attention layers in each multi-head self-attention layer in each encoder block
          dim_feedforward=512, # 2 linear layers in each encoder block's feedforward network: dim 64-->512--->64
          dropout=0.1, 
          activation='relu' # ReLU: avoid saturation/tame gradient/reduce compute time
@@ -71,7 +68,7 @@ class CNNVIT(nn.Module):
       
       # I'm using 4 instead of the 6 identical stacked encoder layrs used in Attention is All You Need paper
       # Complete transformer block contains 4 full transformer encoder layers (each w/ multihead self-attention+feedforward)
-      self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=6)
+      self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=self.encoder_layers)
 
       #data format (sample x band x height x width)
       #Transformer
@@ -125,13 +122,6 @@ class CNNVIT(nn.Module):
       logits = self.fc2_linear(out)
       probs = self.sigmoid(logits)
       return logits, probs
-
-      #data format (sample x band x height x width)
-
-   def describe(self): 
-      for i in range(len(self.chs)): 
-         print("Convolution")
-         print(self.spatial_dim[i])
 
 
 class PositionalEncoding(nn.Module):

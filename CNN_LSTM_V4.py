@@ -4,10 +4,8 @@ import numpy as np
 import torch.nn.functional as f
 
 class CNN_LSTM(nn.Module):
-    
-    def __init__(self, bands = 3, labels = 19, time=6, lstm_layers = 3):
 
-        
+    def __init__(self, bands = 3, labels = 19, time=6, lstm_layers = 3):
         super(CNN_LSTM, self).__init__()
         
         # channels
@@ -50,7 +48,7 @@ class CNN_LSTM(nn.Module):
             nn.MaxPool2d(kernel_size = self.kpool, stride = self.spool)
         )
 
-        self.global_avg_pool = nn.AvgPool2d(kernel_size = self.kavg)
+        self.global_max_pool = nn.MaxPool2d(kernel_size = self.kavg)
         
         self.lstm = nn.LSTM(
             input_size = self.ch3,
@@ -82,7 +80,7 @@ class CNN_LSTM(nn.Module):
             out = self.conv3(out)          
             #print('c3: out:', out.shape) #[10, 256, 27, 27]
 
-            out = self.global_avg_pool(out)
+            out = self.global_max_pool(out)
             #print('avg. pool:', out.shape) #[10, 256, 1, 1]
             
             CNN_sequence.append(out)
