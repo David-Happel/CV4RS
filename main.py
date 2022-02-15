@@ -149,6 +149,9 @@ def main():
         model = model_class(bands=len(bands), labels=len(class_weights), time=6, encoder_layers=self.encoder_layers).to(device)
     else:
         model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
+    
+    # GPU parallel
+    model = nn.DataParallel(model)
 
     # Optimizers
     #TRAINING
