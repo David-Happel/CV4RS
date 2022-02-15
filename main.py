@@ -144,11 +144,11 @@ def main():
 
     #model selection
     if model_name == 'lstm':
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints, lstm_layers = lstm_layers).to(device)
     if model_name == 'trans':
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, encoder_layers=self.encoder_layers).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints, encoder_layers=trans_layers).to(device)
     else:
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints).to(device)
     
     # GPU parallel
     model = nn.DataParallel(model)
