@@ -31,6 +31,8 @@ args = arguments()
 
 ### CONFIG
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
+print(torch.version.cuda)
+print(t.cuda.is_available())
 
 if t.cuda.is_available():
     print(f'\nUsing gpu {t.cuda.current_device()}')

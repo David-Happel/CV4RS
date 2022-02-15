@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py --epochs 10 --batch_size 15 --timepoints 36 --model lstm --lstm_layers 2 --name lstm_36t15b2l --no_process_data
+python3 main.py --epochs 10 --batch_size 12 --timepoints 36 --model lstm --lstm_layers 2 --name lstm_36t15b2l --no_process_data
