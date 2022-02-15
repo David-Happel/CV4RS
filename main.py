@@ -133,7 +133,7 @@ def main():
     val_split = 0.2
     val_size = int(len(dataset) * val_split)
     train_size= len(dataset) - val_size
-    train_set, val_set = t.utils.data.random_split(dataset, [val_size, train_size], generator=t.Generator().manual_seed(42))
+    train_set, val_set = t.utils.data.random_split(dataset, [train_size, val_size], generator=t.Generator().manual_seed(42))
     
     print(f'Samples: {len(dataset)} - Train: {train_size}, Val:{val_size}')
 
