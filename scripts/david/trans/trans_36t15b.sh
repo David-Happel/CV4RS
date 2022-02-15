@@ -5,8 +5,8 @@
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=100G
-#SBATCH --partition=gpu
-#SBATCH --time=72:00:00
+#SBATCH --partition=gpu_short
+#SBATCH --time=24:00:00
 #SBATCH --gres=gpu:tesla:2
 
 echo "Loading venv..."
