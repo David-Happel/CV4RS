@@ -34,6 +34,9 @@ def arguments():
     parser.add_argument('--lstm_layers', type=int,
                 help='lstm_layers')
 
+    parser.add_argument('--trans_layers', type=int,
+                help='trans_layers')
+
     # Switch
     parser.add_argument('--no_class_weights', action='store_false',
                         help='Dont use weighted loss')

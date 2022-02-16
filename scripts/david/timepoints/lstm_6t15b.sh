@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/CV4RS/bl_12t15b.out
+#SBATCH -o /home/users/d/davidhappel/CV4RS/lstm_6t15b1l.out
 #SBATCH --chdir=/home/users/d/davidhappel/CV4RS
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=100G
-#SBATCH --partition=gpu
-#SBATCH --time=72:00:00
+#SBATCH --partition=gpu_short
+#SBATCH --time=24:00:00
 #SBATCH --gres=gpu:tesla:2
 
 echo "Loading venv..."
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py --epochs 5 --batch_size 15 --timepoints 12 --model bl --name bl_12t15b --no_process_data
+python3 main.py --epochs 10 --batch_size 12 --timepoints 6 --model lstm --lstm_layers 1 --name lstm_6t15b1l --no_process_data
