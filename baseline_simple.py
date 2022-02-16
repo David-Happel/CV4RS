@@ -36,6 +36,13 @@ class C3D(nn.Module):
     """
 
     def __init__(self, bands=3, labels=24, time=6):
+        """[summary]
+
+        Args:
+            bands (int, optional): [description]. Defaults to 3.
+            labels (int, optional): [description]. Defaults to 24.
+            time (int, optional): [description]. Defaults to 6.
+        """
         super(C3D, self).__init__()
 
         self.conv1 = nn.Conv3d(bands, 32, kernel_size=(3, 3, 3), padding=(1, 1, 1))
@@ -77,6 +84,15 @@ class C3D(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        
         h = f.relu(self.conv1(x))
         h = self.pool1(h)
 
@@ -104,7 +120,6 @@ class C3D(nn.Module):
         probs = self.sigmoid(logits)
       
         return logits, probs
-
 
 """
 References

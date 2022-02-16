@@ -8,6 +8,16 @@ import math
 class CNNVIT(nn.Module):
 
    def __init__(self, bands=3, labels=6, time =6, device=None, d_model = 128, encoder_layers = 1):
+      """[summary]
+
+      Args:
+          bands (int, optional): [description]. Defaults to 3.
+          labels (int, optional): [description]. Defaults to 6.
+          time (int, optional): [description]. Defaults to 6.
+          device ([type], optional): [description]. Defaults to None.
+          d_model (int, optional): [description]. Defaults to 128.
+          encoder_layers (int, optional): [description]. Defaults to 1.
+      """
       super(CNNVIT, self).__init__()
 
       #channels
@@ -86,6 +96,14 @@ class CNNVIT(nn.Module):
         
 
    def forward(self, x):
+      """[summary]
+
+      Args:
+          x ([type]): [description]
+
+      Returns:
+          [type]: [description]
+      """
       #define how data passes through model 
       #input shape : data format (sample, band, time, height, width)
       #CONVOLUTIONAL MODULE
@@ -127,6 +145,13 @@ class CNNVIT(nn.Module):
 class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+       """[summary]
+
+       Args:
+           d_model (int): [description]
+           dropout (float, optional): [description]. Defaults to 0.1.
+           max_len (int, optional): [description]. Defaults to 5000.
+       """
         super().__init__()
         self.dropout = nn.Dropout(p=dropout)
 

@@ -12,6 +12,17 @@ import torch
 print = report.log
 
 def output_size(n, k, p=0, s = 1):
+    """[summary]
+
+    Args:
+        n ([type]): [description]
+        k ([type]): [description]
+        p (int, optional): [description]. Defaults to 0.
+        s (int, optional): [description]. Defaults to 1.
+
+    Returns:
+        [type]: [description]
+    """
     #[(W−K+2P)/S]+1
     #n = width and height dimensions 
     #k = kernel size 
@@ -20,6 +31,20 @@ def output_size(n, k, p=0, s = 1):
     return math.floor(((n + (2*p) - k) / s) + 1)
 
 def output_size_3d(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0): 
+    """[summary]
+
+    Args:
+        d_n ([type]): [description]
+        h_n ([type]): [description]
+        w_n ([type]): [description]
+        kernel_n ([type]): [description]
+        padding ([type]): [description]
+        stride (int, optional): [description]. Defaults to 1.
+        dilation (int, optional): [description]. Defaults to 0.
+
+    Returns:
+        [type]: [description]
+    """
     
     d_out_len =  ((d_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
     h_out_len =  ((h_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
@@ -28,7 +53,16 @@ def output_size_3d(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0):
 
 def evaluation(y_true, y_pred, initial=dict()): 
     #standard classfication report - precision, recall, f1-score, support
+    """[summary]
 
+    Args:
+        y_true ([type]): [description]
+        y_pred ([type]): [description]
+        initial ([type], optional): [description]. Defaults to dict().
+
+    Returns:
+        [type]: [description]
+    """
     res = classification_report(y_true, y_pred, output_dict=True, labels=range(len(labels)), target_names=label_names, zero_division=0)
     res["emr"] = emr(y_true, y_pred)
     res["one_zero_loss"] = one_zero_loss(y_true, y_pred)
@@ -49,19 +83,45 @@ def evaluation(y_true, y_pred, initial=dict()):
     return res_values, res_names
 
 def scalars_from_scores(writer, scores, score_names, suffix=""):
-  # scores_mean = np.mean(scores, axis=0)
-  for epoch, scores in enumerate(scores):
-        for score_i, score in enumerate(scores):
-            writer.add_scalar(f'{score_names[score_i]}/{suffix}', score, epoch)
+    """[summary]
+
+    Args:
+        writer ([type]): [description]
+        scores ([type]): [description]
+        score_names ([type]): [description]
+        suffix (str, optional): [description]. Defaults to "".
+    """
+    # scores_mean = np.mean(scores, axis=0)
+    for epoch, scores in enumerate(scores):
+            for score_i, score in enumerate(scores):
+                writer.add_scalar(f'{score_names[score_i]}/{suffix}', score, epoch)
 
 #Multi-Label Metrics    
 def emr(y_true, y_pred):
+    """[summary]
+
+    Args:
+        y_true ([type]): [description]
+        y_pred ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     n = len(y_true)
     row_indicators = np.all(y_true == y_pred, axis = 1) # axis = 1 will check for equality along rows.
     exact_match_count = np.sum(row_indicators)
     return exact_match_count/n
 
 def one_zero_loss(y_true, y_pred):
+    """[summary]
+
+    Args:
+        y_true ([type]): [description]
+        y_pred ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     n = len(y_true)
     row_indicators = np.logical_not(np.all(y_true == y_pred, axis = 1)) # axis = 1 will check for equality along rows.
     not_equal_count = np.sum(row_indicators)
@@ -69,7 +129,17 @@ def one_zero_loss(y_true, y_pred):
 
 #Hamming Loss
 #Hamming Loss computes the proportion of incorrectly predicted labels to the total number of labels.
+
 def hamming_loss(y_true, y_pred):
+    """[summary]
+
+    Args:
+        y_true ([type]): [description]
+        y_pred ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     hl_num = np.sum(np.logical_xor(y_true, y_pred))
     hl_den = np.prod(y_true.shape)
     
@@ -78,6 +148,15 @@ def hamming_loss(y_true, y_pred):
 
 
 def get_mean_std(times, batch_size = 1000):
+    """[summary]
+
+    Args:
+        times ([type]): [description]
+        batch_size (int, optional): [description]. Defaults to 1000.
+
+    Returns:
+        [type]: [description]
+    """
 
     train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor())
 

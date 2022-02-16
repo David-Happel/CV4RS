@@ -20,6 +20,13 @@ print = report.log
 
 class ProcessData:
     def __init__(self, data_dir = "data/deepcrop/tiles/", bands=["GRN", "NIR", "RED"], times=range(0,36,1)):
+        """[summary]
+
+        Args:
+            data_dir (str, optional): [description]. Defaults to "data/deepcrop/tiles/".
+            bands (list, optional): [description]. Defaults to ["GRN", "NIR", "RED"].
+            times ([type], optional): [description]. Defaults to range(0,36,1).
+        """
         self.data_dir = data_dir
         self.imageWidth = 224
         self.imageHeight = 224
@@ -27,9 +34,16 @@ class ProcessData:
 
         self.times = times
         self.bands = bands
-
-
+       
     def process_tiles(self, tiles, data_filename = '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif', label_filename = '/IACS_2018.tif', out_dir = 'data/prepared/'):
+        """[summary]
+
+        Args:
+            tiles ([type]): [description]
+            data_filename (str, optional): [description]. Defaults to '2018-2018_001-365_HL_TSA_SEN2L_{band}_TSI.tif'.
+            label_filename (str, optional): [description]. Defaults to '/IACS_2018.tif'.
+            out_dir (str, optional): [description]. Defaults to 'data/prepared/'.
+        """
         bands = self.bands
         imageWidth = self.imageWidth
         imageHeight = self.imageHeight

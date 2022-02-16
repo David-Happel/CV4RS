@@ -21,9 +21,22 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 
 def log(text):
+    """[summary]
+
+    Args:
+        text ([type]): [description]
+    """
     print_string = "{:0.2f}s - {}"
     logging.info(print_string.format(time.time() - t, text))
 
 
 def report_path(filename):
+    """[summary]
+
+    Args:
+        filename ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     return os.path.join(report_dir, filename)
