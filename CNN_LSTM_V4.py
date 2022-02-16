@@ -5,7 +5,7 @@ import torch.nn.functional as f
 
 class CNN_LSTM(nn.Module):
 
-    def __init__(self, bands = 3, labels = 19, time=6, lstm_layers = 3):
+    def __init__(self, bands = 3, labels = 6, time=6, lstm_layers = 1):
         super(CNN_LSTM, self).__init__()
         
         # channels

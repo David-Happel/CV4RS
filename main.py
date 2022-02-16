@@ -31,6 +31,8 @@ args = arguments()
 
 ### CONFIG
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
+print(t.version.cuda)
+print(t.cuda.is_available())
 
 if t.cuda.is_available():
     print(f'\nUsing gpu {t.cuda.current_device()}')
@@ -133,7 +135,7 @@ def main():
     val_split = 0.2
     val_size = int(len(dataset) * val_split)
     train_size= len(dataset) - val_size
-    train_set, val_set = t.utils.data.random_split(dataset, [val_size, train_size], generator=t.Generator().manual_seed(42))
+    train_set, val_set = t.utils.data.random_split(dataset, [train_size, val_size], generator=t.Generator().manual_seed(42))
     
     print(f'Samples: {len(dataset)} - Train: {train_size}, Val:{val_size}')
 
@@ -142,15 +144,18 @@ def main():
     print(f'Class Counts: {dataset.label_counts}')
     print(f'Class Weights: {class_weights}')
 
-    #model selection
+    # instantiating model 
     if model_name == 'lstm':
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, lstm_layers = lstm_layers).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints, lstm_layers = lstm_layers).to(device)
     if model_name == 'trans':
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6, encoder_layers=self.encoder_layers).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints, encoder_layers=trans_layers).to(device)
     else:
-        model = model_class(bands=len(bands), labels=len(class_weights), time=6).to(device)
+        model = model_class(bands=len(bands), labels=len(class_weights), time=timepoints).to(device)
+    
+    # GPU parallel
+    model = nn.DataParallel(model)
 
-    # Optimizers
+    #Optimizers
     #TRAINING
     criterion = nn.BCEWithLogitsLoss(pos_weight=t.from_numpy(class_weights).to(device))
     optimizer = optim.Adam(model.parameters(), lr = 0.001)
@@ -166,7 +171,7 @@ def main():
     train_scores = np.empty((epochs, 45))
     val_scores =  np.empty((epochs, 45))
     score_names = None
-    saved_epoch = 0
+    saved_epoch = 0 #CHECK USEFULNESS
     best_f1 = 0
     for epoch in range(epochs):  # loop over the dataset multiple times
         print(f'---- EPOCH: {epoch+1} -------------------------------')
@@ -180,10 +185,10 @@ def main():
         val_score, _ = predict(model, val_batches, device=device, criterion=criterion)
         val_scores[epoch] = val_score
         
-        # Save model if best f1 score of epoch
+        # Save the best model to date - the best global model 
         sample_f1 = val_score[list(score_names).index('samples avg_f1-score')]
         if(sample_f1 > best_f1):
-            saved_epoch = epoch+1
+            saved_epoch = epoch+1 
             save_path = f'{report.report_dir}/saved_model/model.pth'
             t.save(model.state_dict(), save_path)
             best_f1 = sample_f1
@@ -204,6 +209,9 @@ def main():
     test_batches = DataLoader(
                         test_dataset,
                         batch_size=batch_size)
+
+
+    #TODO load the best model
 
     # Test model on testing data
     test_score, _ = predict(model, test_batches, device=device, criterion=criterion)

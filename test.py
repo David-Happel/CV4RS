@@ -1,4 +1,4 @@
-from transformer import CNNVIT as vit
+
 import os
 import json
 import numpy as np
@@ -10,39 +10,60 @@ from torch.utils.data import DataLoader, TensorDataset, SubsetRandomSampler
 from torchsummary import summary
 from helper import *
 from torchvision import transforms
+
+#models
 from baseline_simple import C3D as bl
+from transformer import CNNVIT as vit
+from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
+
+
 #input shape : data format (sample, band, time, height, width)
-X = t.rand(1, 3, 36, 224, 224)
-test = bl(time=36)
+samples = 1
+bands = 3
+times = 36
+height = 224
+width = 224
+labels = 6 
+
+#text_file = open("complexity/{t}t_{b}b.txt".format(t = times, b = bands), "w")
+
+X = t.rand(samples, bands,times, height, width)
+
+
+bl = bl(bands, labels, times )
+trans = vit(bands,labels, times)
+lstm = cnn_lstm(bands, labels, times)
+
+#TEST Models
+l1, p1 = bl(X)
+print(p1.shape)
+l2, p2 = trans(X)
+print(p2.shape)
+l3, p3 = lstm(X)
+print(p3.shape)
+
+
+
+#COMPLEXITY 
+print("====BASELINE=====\n")
+model_sum = summary(bl,(bands,times, 224, 224))
+#model_sum = str(model_sum)
+
+print("====TRANS=====\n")
+model_sum = summary(trans,(bands,times, 224, 224))
+
+print("====LSTM=====\n")
+#model_sum = summary(lstm,(bands,times, 224, 224))
+
+#text_file.close()
+
+"""
 # test = vit()
 #summary(test, (100, 3, 6, 224, 224))
 res = test(X)
 print(res[0].shape)
 print(res[1].shape)
 #test.describe()
-
-
-#create band and times arrays
-timepoints = 6
-t_step = int(36 / timepoints)
-times = range(0,36,t_step)
-bands = ["GRN", "NIR", "RED"]
 """
-mean, std_dev = get_mean_std(times)
-print(mean.shape)
-print(std_dev.shape)
-
-print(mean)
-print(std_dev)
-
-mean = [2.2148, 7.9706, 2.2510]
-std = [ 1021.1434, 11697.6494,  1213.0621]
-data_transform = transforms.Compose([
-    ToTensor(),
-    transforms.Normalize(mean, std, inplace=False)
-])
-"""
-# Read in pre-processed dataset
-# data format (sample, band, time, height, width)
 
 

@@ -10,7 +10,7 @@
 #SBATCH --gres=gpu:tesla:2
 
 echo "Loading venv..."
-source /home/users/m/moran/venv/cv4rs/bin/activate
+pip install torch==1.8.1+cu101 torchvision==0.9.1+cu101 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 #source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 
 echo "Loading cuda..."

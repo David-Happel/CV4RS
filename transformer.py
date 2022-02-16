@@ -7,7 +7,7 @@ import math
 #data format (sample, band, time, height, width)
 class CNNVIT(nn.Module):
 
-   def __init__(self, bands=3, labels=24, time =6, device=None, d_model = 128, encoder_layers = 6):
+   def __init__(self, bands=3, labels=6, time =6, device=None, d_model = 128, encoder_layers = 1):
       super(CNNVIT, self).__init__()
 
       #channels
