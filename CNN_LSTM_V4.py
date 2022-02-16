@@ -66,7 +66,7 @@ class CNN_LSTM(nn.Module):
         self.sigmoid = nn.Sigmoid()
     
     def forward(self, x): #x = [B, C, T, H, W]
-        print(f"batch: {x.shape}")
+        # print(f"batch: {x.shape}")
         
         CNN_sequence = [] 
         

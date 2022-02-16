@@ -88,7 +88,7 @@ class CNNVIT(nn.Module):
    def forward(self, x):
       #define how data passes through model 
       #input shape : data format (sample, band, time, height, width)
-      print(f"batch: {x.shape}")
+      # print(f"batch: {x.shape}")
       #CONVOLUTIONAL MODULE
       time = x.shape[2]
       cnn_seq = []

@@ -77,7 +77,7 @@ class C3D(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        print(f"batch: {x.shape}")
+        # print(f"batch: {x.shape}")
         h = f.relu(self.conv1(x))
         h = self.pool1(h)
 

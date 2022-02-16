@@ -16,6 +16,7 @@ from helper import evaluation, scalars_from_scores
 import report
 from arg_parser import arguments
 from torchvision import transforms
+import time
 
 from torch.utils.tensorboard import SummaryWriter
 #Models
@@ -218,6 +219,11 @@ def main():
         writer.add_scalar(f'{score_names[score_i]}/test', score)
 
     # writer.add_graph(model, test_dataset[:5].to(device))
+    pytorch_total_params = sum(p.numel() for p in model.parameters())
+    writer.add_text('n_params', str(pytorch_total_params))
+    pytorch_total_train_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    writer.add_text('n_train_params', str(pytorch_total_train_params))
+
     writer.close()
 
 
@@ -307,4 +313,8 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
     return evaluation(y_pred, y_true, initial=scores)
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    writer.add_text('Time',str((time.time() - start_time)))
+    print("--- %s seconds ---" % (time.time() - start_time))
+    
