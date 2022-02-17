@@ -65,7 +65,7 @@ python main.py --samples 5 --epochs 2 --batch_size 5  --timepoints 6 --model bl 
 ```
 
 Arguments: 
-- **Samples** if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
+- **Samples:** if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
 - **Epochs:** how many epochs to train the model on. Where one epoch is the full set of data
 - **Batch Size:** Specify the batch size to be used in training 
 - **Timepoints:** The number of temporal features to use. Max is 36 
