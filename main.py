@@ -120,12 +120,20 @@ def main():
     if process_data:
         pre_processing(dl, train_tiles=train_tiles, test_tiles=test_tiles)
 
-
-
     #Data Tranformations
     #mean and stdev - use helper function to re-calculate
-    mean = [2.2148, 7.9706, 2.2510]
-    std = [ 1021.1434, 11697.6494,  1213.0621]
+    means = [ 736.2289, 2657.3914,  748.3498, 1886.2126, 1231.7987, 2381.1394]
+    stds = [ 340017.6875, 3903396.5000,  403981.5000, 2088645.7500, 1017907.5000, 3169651.0000]
+    mean_bands = ["GRN", "NIR", "RED", "SW1", "SW2", "RE3"]
+    mean = []
+    std = []
+    for band in bands:
+        index = mean_bands.index(band)
+        mean.append(means[index])
+        std.append(stds[index])
+    mean = t.tensor(mean)
+    std = t.tensor(std)
+    
     data_transform = transforms.Compose([
     #Samples to tensors
      ToTensor(),

@@ -89,7 +89,6 @@ class DeepCropDataset(Dataset):
             sample = self.transform(sample)
         return sample
 
-
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
 

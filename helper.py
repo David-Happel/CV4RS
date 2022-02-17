@@ -145,7 +145,7 @@ def hamming_loss(y_true, y_pred):
 
 
 
-def get_mean_std(times, batch_size = 1000):
+def get_mean_std(times, bands, batch_size = 1000):
     """[summary]
 
     Args:
@@ -156,19 +156,17 @@ def get_mean_std(times, batch_size = 1000):
         [type]: [description]
     """
 
-    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor())
+    train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), bands=bands)
+    loader = DataLoader(train_dataset, batch_size=batch_size)
 
-    loader= DataLoader(train_dataset, batch_size=batch_size)
-    ch_sum, ch_sqr_sum = 0, 0
-    
+    ch_sum, ch_sqr_sum, n_batch = 0, 0, 0
     for batch in loader:
+        print("-")
         data, labels = batch
-        print(data.shape)
-        print(type(data))
         ch_sum += torch.mean(data, dim = [0, 2, 3, 4])
         ch_sqr_sum += torch.mean(data**2, dim = [0, 2, 3, 4])
+        n_batch += 1
     
-    mean = ch_sum/batch_size
-    std = (ch_sqr_sum/batch_size - mean*2)*0.5
-    
+    mean = ch_sum/n_batch
+    std = (ch_sqr_sum/n_batch - mean*2)*0.5
     return mean, std
