@@ -17,23 +17,15 @@ labels = [10, 31, 32, 33, 50, 91]
 
 class DeepCropDataset(Dataset):
     def __init__(self, csv_file, root_dir, bands=["GRN", "NIR", "RED"], times=range(0,36,1), transform=None, t_samples=None):
-        """[summary]
+        """Initialise dataset object. Custom crop dataset class that inherits the pytorch Dataset class  
 
-        Args:
-            csv_file ([type]): [description]
-            root_dir ([type]): [description]
-            bands (list, optional): [description]. Defaults to ["GRN", "NIR", "RED"].
-            times ([type], optional): [description]. Defaults to range(0,36,1).
-            transform ([type], optional): [description]. Defaults to None.
-            t_samples ([type], optional): [description]. Defaults to None.
-        """
-
-        """
         Args:
             csv_file (string): Path to the csv file with annotations.
             root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
+            bands (list, optional): bands to be included in dataset. Defaults to ["GRN", "NIR", "RED"].
+            times (list, optional): timepoints to be included in dataset . Defaults to range(0,36,1).
+            transform (object, optional): transformations to be applied to data. Defaults to None.
+            t_samples (int, optional): Number of samples dataset should be limited to. Defaults to None.
         """
 
         self.frame = pd.read_csv(os.path.join(root_dir,csv_file),index_col= 0)
@@ -54,21 +46,21 @@ class DeepCropDataset(Dataset):
         self.label_counts = np.sum(self.frame.loc[:, map(str, self.labels)], axis=0)
 
     def __len__(self):
-        """[summary]
+        """dataset length
 
         Returns:
-            [type]: [description]
+            int: length of dataset
         """
         return len(self.frame)
 
     def __getitem__(self, idx):
-        """[summary]
+        """ retrieves item from dataset given its id 
 
         Args:
-            idx ([type]): [description]
+            idx (int): data sample id
 
         Returns:
-            [type]: [description]
+            tuple: datasample and labels
         """
         if torch.is_tensor(idx):
             idx = idx.tolist()
@@ -106,13 +98,12 @@ class ToTensor(object):
 
 
 class Normalise(object): 
-    #Normalise values for each band
     def __init__(self, mean, std):
-        """[summary]
+        """Normalise values for each band
 
         Args:
-            mean ([type]): [description]
-            std ([type]): [description]
+            mean (list): mean value of band
+            std (list): standard deviation
         """
         self.mean = mean
         self.std = std

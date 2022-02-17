@@ -44,7 +44,6 @@ processdata.py contains all the proprocessing code for the image data
 
 ## Evaluation
 
-
 ## Tensorboard 
 
 To view and visualsie the performance of the models, tensorboard can be used. When a model is trained information realted to it is automatically exported to the '/runs' folder.

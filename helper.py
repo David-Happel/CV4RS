@@ -146,14 +146,14 @@ def hamming_loss(y_true, y_pred):
 
 
 def get_mean_std(times, bands, batch_size = 1000):
-    """[summary]
-
+    """Get the mean and stdev of the different image bands
     Args:
-        times ([type]): [description]
-        batch_size (int, optional): [description]. Defaults to 1000.
+        times (list): timepoints to get mean from 
+        batch_size (int, optional): batch size for dataloader. Defaults to 1000.
 
     Returns:
-        [type]: [description]
+        mean (list): list of band means
+        stdev (list): list of band stdevs
     """
 
     train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), bands=bands)

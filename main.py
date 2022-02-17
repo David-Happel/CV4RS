@@ -17,20 +17,19 @@ import report
 from arg_parser import arguments
 from torchvision import transforms
 import time
-
 from torch.utils.tensorboard import SummaryWriter
+
 #Models
 from baseline_simple import C3D as bl
 from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
 from transformer import CNNVIT as trans
-
+#Dataset
 from dataset import DeepCropDataset, ToTensor, Normalise, labels as unique_labels, label_names
 
 print = report.log
-
 args = arguments()
 
-### CONFIG
+### ====CONFIG====
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
 print(t.version.cuda)
 print(t.cuda.is_available())
@@ -48,9 +47,9 @@ process_data = False if args.no_process_data == False else True
 
 writer_suffix = args.name or ""
 print(f'Run Name: {writer_suffix}')
-
 writer = SummaryWriter(filename_suffix=writer_suffix, comment=writer_suffix)
-#Restriction of samples to take
+
+#=====HANDLING ARGUMENTS=====
 t_samples = args.samples or None
 print(f'Samples: {t_samples}')
 writer.add_text('samples', f'Samples: {t_samples}')
@@ -112,10 +111,10 @@ test_tiles = ["X0071_Y0042"]
 
 ### Main Function
 def main():
-    """[summary]
+    """ Interfaces the rest of the code with the command line
     """
 
-    #PRE - Processing
+    #Pre-Processing
     dl = ProcessData(bands = bands, times=times)
     if process_data:
         pre_processing(dl, train_tiles=train_tiles, test_tiles=test_tiles)
@@ -140,9 +139,9 @@ def main():
      #Normalise values for each band
      Normalise(mean, std)
     ])
+
     # Read in pre-processed dataset
     # data format (sample, band, time, height, width)
-
     print("Loading data")
     dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples, bands=bands)
 
@@ -170,8 +169,8 @@ def main():
     # GPU parallel
     model = nn.DataParallel(model)
 
-    #Optimizers
-    #TRAINING
+    #====TRAINING======
+    print("===== TRAINING ======================")
     criterion = nn.BCEWithLogitsLoss(pos_weight=t.from_numpy(class_weights).to(device))
     optimizer = optim.Adam(model.parameters(), lr = 0.001)
 
@@ -190,13 +189,13 @@ def main():
     best_f1 = 0
     for epoch in range(epochs):  # loop over the dataset multiple times
         print(f'---- EPOCH: {epoch+1} -------------------------------')
-        # TRAIN EPOCH
+        # train epoch
         train_score, train_score_names = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
         train_scores[epoch] = train_score
         
         score_names = train_score_names
 
-        # Val EPOCH
+        # Val epoch
         val_score, _ = predict(model, val_batches, device=device, criterion=criterion)
         val_scores[epoch] = val_score
         
@@ -216,7 +215,7 @@ def main():
     scalars_from_scores(writer, train_scores, score_names, suffix="train")
     scalars_from_scores(writer, val_scores, score_names, suffix="val")
     
-
+    #=====TESTING=====
     print("===== TESTING ======================")
     #Actual test performance
     # Load Testing Data
