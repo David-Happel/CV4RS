@@ -33,11 +33,11 @@ processdata.py contains all the proprocessing code for the image data
 
 ## Models 
 
-### 3D-CNN 
+#### 3D-CNN 
 
-### 2DCNN-LSTM
+#### 2DCNN-LSTM
 
-### 2DCNN-Transformer
+#### 2DCNN-Transformer
 
 
 ## Experiments
@@ -50,6 +50,14 @@ The following experiments were conducted on these models during our research.
 
 ## Getting Started 
 
+
+#### Installing requirements 
+
+```
+cd CV4RS
+pip install -r requirements.txt
+```
+
 To run one of the 3 models use the following command in the terminal
 
 ```
@@ -58,7 +66,7 @@ python main.py --samples 5 --epochs 2 --batch_size 5  --timepoints 6 --model bl 
 
 Arguments: 
 - **Samples** if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
-- **Epochs** how many epochs to train the model on. Where one epoch is the full set of data
+- **Epochs:** how many epochs to train the model on. Where one epoch is the full set of data
 - **Batch Size:** Specify the batch size to be used in training 
 - **Timepoints:** The number of temporal features to use. Max is 36 
 - **Model:** The model to be trained (bl, trans, lstm)
@@ -98,21 +106,21 @@ Arguments:
 
 ## HPC getting started
 
-### Accessing server
+#### Accessing server
 Note: you have to be connected to the TUB network to access the HPC. Otherwise you have to use the TUB VPN. 
 
 ```
 ssh <TUBID>@gateway.hpc.tu-berlin.de
 ```
 
-### Downloading Repo
+#### Downloading Repo
 git clone
 
 ```
 git clone git@github.com:David-Happel/CV4RS.git
 ```
 
-### Python + virtual environment
+#### Python + virtual environment
 Setting up the virtual environment on the server
 Do this once and then it will be called in the bash script thereafter
 
@@ -124,14 +132,14 @@ python3 -m venv /home/users/d/davidhappel/venv/cv4rs
 source /home/users/d/davidhappel/venv/cv4rs/bin/activate
 ```
 
-### Installing requirements 
+#### Installing requirements 
 
 ```
 cd CV4RS
 pip install -r requirements.txt
 ```
 
-### Tranferring Data - Connecting via SSHFS
+#### Tranferring Data - Connecting via SSHFS
 Mount the HPC to your local file directory when everything else is setup
 
 Note: transferring takes a long time on home wifi. Would recommend using the TUB network
@@ -140,4 +148,4 @@ Note: transferring takes a long time on home wifi. Would recommend using the TUB
 sshfs davidhappel@gateway.hpc.tu-berlin.de: <filepath to where you want to access the folder>
 ```
 
-OOnce mounted you can then copy over data in your file explorer/finder
+Once mounted you can then copy over data in your file explorer/finder
