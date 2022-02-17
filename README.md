@@ -69,8 +69,9 @@ Arguments:
 
 ## Repo Structure
 
+```
 .
-├── CNN_LSTM_V4.py  Lstm model
+├── CNN_LSTM_V4.py  # Lstm model
 ├── README.md 
 ├── agg_data.xlsx
 ├── arg_parser.py
@@ -121,7 +122,7 @@ Arguments:
 ├── test.py
 ├── train.py
 └── transformer.py
-
+```
 
 
 
