@@ -36,7 +36,7 @@ class C3D(nn.Module):
     """
 
     def __init__(self, bands=3, labels=24, time=6):
-        """[summary]
+        """Initialise baseline model
 
         Args:
             bands (int, optional): [description]. Defaults to 3.
