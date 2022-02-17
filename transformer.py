@@ -8,7 +8,7 @@ import math
 class CNNVIT(nn.Module):
 
    def __init__(self, bands=3, labels=6, time =6, device=None, d_model = 128, encoder_layers = 1):
-      """[summary]
+      """ Initialise model
 
       Args:
           bands (int, optional): Number of image bands. Defaults to 3.
@@ -20,22 +20,24 @@ class CNNVIT(nn.Module):
       """
       super(CNNVIT, self).__init__()
 
-      #channels
+      #NETWORK PARAMETERS 
+      #Channels
       self.ch1, self.ch2, self.ch3 = 64, 128, 256
       self.chs = [64, 128, 256]
-      #network params
-      # height x width 
+
+      #Kernel sizes
       self.k1, self.k2, self.k3 = (3, 3), (3, 3), (3, 3)
       self.k = [(3, 3), (3, 3), (3, 3)]
+      # Stride size 
       self.s1, self.s2, self.s3 = (1, 1), (1, 1), (1, 1)
       self.s = [(2, 2), (1, 1), (1, 1)]
+      # Padding 
       self.p1, self.p2, self.p3= (1, 1), (1, 1), (1, 1)
       self.p = [(1, 1), (1, 1), (1, 1)]
 
       self.encoder_layers = encoder_layers
 
-      # network architecture
-      # create t CNN models
+      #ARCHITECHTURE
 
       self.conv1 = nn.Sequential(
          nn.Conv2d(in_channels=bands, out_channels=self.ch1, kernel_size=self.k1, stride=self.s1, padding=self.p1),
@@ -171,3 +173,9 @@ class PositionalEncoding(nn.Module):
       """
       x = x + self.pe[:x.size(0)]
       return self.dropout(x)
+
+"""
+References
+----------
+[1] 
+"""

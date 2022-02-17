@@ -5,19 +5,22 @@
 This repository contains code relating to the 'Project Computer Vision for Remote Sensing' course at Technische Universität Berlin. This project involved researching state of the art techniques for classifying crops from satellite imagery. Three different types of architechtures were investigated: a 3-D CNN (Baseline Model), a 2DCNN-LSTM hybrid model and a 2DCNN-Transformer hybrid model. 
 
 ## Data 
-The dataset for this project contains Sentinel-2 covering the Brandenburg region, Germany. 
+The dataset for this project contains Sentinel-2 covering the Brandenburg region, Germany.
 
-8 spectral bands of different spatial resolution
-- **10m:** GRN, RED, NIR
-- **20m:** RE (3x), SW (2x)
-- **Temporal resolution:** sample every 10 days 
+- 13 tiles - each tile is a 3000x3000 pixel image
+
+- 8 spectral bands of different spatial resolution
+    - 10m: GRN, RED, NIR
+    - 20m: RE (3x), SW (2x) - upsampled to 10m resolution
+- Temporal resolution: sample every 10 days 
 - 36 time frames across 1 year 
+- 20 classes (crop species) - 6 most prevelant used in analysis
 
-- **20 classes (crop species)** - 6 most prevelant used in analysis
+
 
 
 ## Dataset Preparation
-- 3000x3000 pixel images
+
 
 Images are cropped into smaller patches with a sliding window approach: 
 - Window size: 224x224
@@ -29,6 +32,8 @@ Images are cropped into smaller patches with a sliding window approach:
 processdata.py contains all the proprocessing code for the image data 
 
 
+
+
 ## Models 
 
 #### 3D-CNN (Baseline)
@@ -36,6 +41,19 @@ processdata.py contains all the proprocessing code for the image data
 #### 2DCNN-LSTM
 
 #### 2DCNN-Transformer
+
+## Evaluation
+
+
+## Tensorboard 
+
+To view and visualsie the performance of the models, tensorboard can be used. When a model is trained information realted to it is automatically exported to the '/runs' folder.
+
+Run the following command to launch tensorboard and then navigate to http://localhost:6006/ to view 
+```
+tensorboard --logdir=runs
+```
+
 
 
 ## Experiments
@@ -46,13 +64,13 @@ The following experiments were conducted on these models during our research.
 
 
 
+
 ## Getting Started 
 
 #### Cloning Repo 
 ```
 git clone https://github.com/David-Happel/CV4RS.git
 ```
-
 
 #### Installing requirements 
 
@@ -68,13 +86,13 @@ python main.py --samples 5 --epochs 2 --batch_size 5  --timepoints 6 --model bl 
 ```
 
 Arguments: 
-- **Samples:** if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
-- **Epochs:** how many epochs to train the model on. Where one epoch is the full set of data
-- **Batch Size:** Specify the batch size to be used in training 
-- **Timepoints:** The number of temporal features to use. Max is 36 
-- **Model:** The model to be trained (bl, trans, lstm)
-- **name:** the name of the output run file. Can be imported into tensorboard later 
-- **--no_process_data:** Prevents the data being preprocessed. Leave this out the first time you run a model. 
+- Samples: if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
+- Epochs: how many epochs to train the model on. Where one epoch is the full set of data
+- Batch Size: Specify the batch size to be used in training 
+- Timepoints: The number of temporal features to use. Max is 36 
+- Model: The model to be trained (bl, trans, lstm)
+- name: the name of the output run file. Can be imported into tensorboard later 
+- --no_process_data: Prevents the data being preprocessed. Leave this out the first time you run a model. 
 
 
 
@@ -103,8 +121,6 @@ Arguments:
 ├── scripts # bash scripts for running different types of experiments
 └── test.py # testing models before training
 ```
-
-
 
 
 ## HPC getting started

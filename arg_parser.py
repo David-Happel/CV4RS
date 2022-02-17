@@ -2,6 +2,11 @@ import argparse
 
 
 def arguments():
+    """Add arguments for command line parsing
+
+    Returns:
+        Parser arguments
+    """
     # Instantiate the parser
     parser = argparse.ArgumentParser(description='Optional app description')
 
