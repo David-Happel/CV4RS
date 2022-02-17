@@ -12,38 +12,36 @@ import torch
 print = report.log
 
 def output_size(n, k, p=0, s = 1):
-    """[summary]
+    """Determines the output size of a convolutional layer - [(W−K+2P)/S]+1
 
     Args:
-        n ([type]): [description]
-        k ([type]): [description]
-        p (int, optional): [description]. Defaults to 0.
-        s (int, optional): [description]. Defaults to 1.
+        n (int): width and height dimensions 
+        k (int): kernel size 
+        p (int, optional): padding . Defaults to 0.
+        s (int, optional): stride. Defaults to 1.
 
     Returns:
-        [type]: [description]
+        int: output size
     """
-    #[(W−K+2P)/S]+1
-    #n = width and height dimensions 
-    #k = kernel size 
-    #p = padding 
-    #s = stride
     return math.floor(((n + (2*p) - k) / s) + 1)
 
 def output_size_3d(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0): 
-    """[summary]
+    """Determines the output size of a 3-D convolutional layer 
 
     Args:
-        d_n ([type]): [description]
-        h_n ([type]): [description]
-        w_n ([type]): [description]
-        kernel_n ([type]): [description]
-        padding ([type]): [description]
-        stride (int, optional): [description]. Defaults to 1.
-        dilation (int, optional): [description]. Defaults to 0.
+        d_n (int): input depth
+        h_n (int): input height 
+        w_n (int): input width
+        kernel_n (int): kernel size
+        padding (int): padding size
+        stride (int, optional): stride size. Defaults to 1.
+        dilation (int, optional): dilation size. Defaults to 0.
 
     Returns:
-        [type]: [description]
+         int: depth output size
+         int: height output size
+         int: width output size
+
     """
     
     d_out_len =  ((d_n + (2 * padding) - dilation * (kernel_n - 1) - 1) / stride) + 1
@@ -53,11 +51,11 @@ def output_size_3d(d_n, h_n, w_n, kernel_n, padding, stride = 1, dilation = 0):
 
 def evaluation(y_true, y_pred, initial=dict()): 
     #standard classfication report - precision, recall, f1-score, support
-    """[summary]
+    """ calculation of various mulit-label evaluation metrics
 
     Args:
-        y_true ([type]): [description]
-        y_pred ([type]): [description]
+        y_true (list): true labels
+        y_pred (list): [description]
         initial ([type], optional): [description]. Defaults to dict().
 
     Returns:

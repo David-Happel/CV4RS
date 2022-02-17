@@ -84,13 +84,13 @@ class C3D(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        """[summary]
+        """ forward pass through the network
 
         Args:
-            x ([type]): [description]
+            x (Tensor): input tensor
 
         Returns:
-            [type]: [description]
+            Tensor: Tensor with class predictions
         """
         
         h = f.relu(self.conv1(x))

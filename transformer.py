@@ -96,13 +96,13 @@ class CNNVIT(nn.Module):
         
 
    def forward(self, x):
-      """[summary]
+      """ forward pass through the network
 
       Args:
-          x ([type]): [description]
+          x (Tensor): input tensor
 
       Returns:
-          [type]: [description]
+          Tensor: Tensor with class predictions
       """
       #define how data passes through model 
       #input shape : data format (sample, band, time, height, width)
@@ -145,28 +145,29 @@ class CNNVIT(nn.Module):
 
 class PositionalEncoding(nn.Module):
 
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-       """[summary]
+   def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+      """Initialise positional encoder 
 
-       Args:
-           d_model (int): [description]
-           dropout (float, optional): [description]. Defaults to 0.1.
-           max_len (int, optional): [description]. Defaults to 5000.
-       """
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
+      Args:
+         d_model (int): model dimension (# features at each timepoint)
+         dropout (float, optional): ammount of dropout in encoder. Defaults to 0.1.
+         max_len (int, optional): max length of input sequence. Defaults to 5000.
+      """
+         
+      super().__init__()
+      self.dropout = nn.Dropout(p=dropout)
 
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+      position = torch.arange(max_len).unsqueeze(1)
+      div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+      pe = torch.zeros(max_len, 1, d_model)
+      pe[:, 0, 0::2] = torch.sin(position * div_term)
+      pe[:, 0, 1::2] = torch.cos(position * div_term)
+      self.register_buffer('pe', pe)
 
-    def forward(self, x):
-        """
-        Args:
-            x: Tensor, shape [seq_len, batch_size, embedding_dim]
-        """
-        x = x + self.pe[:x.size(0)]
-        return self.dropout(x)
+   def forward(self, x):
+      """ Add positional encoding to input sequence
+      Args:
+         x: Tensor, shape [seq_len, batch_size, embedding_dim]
+      """
+      x = x + self.pe[:x.size(0)]
+      return self.dropout(x)
