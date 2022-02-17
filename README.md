@@ -16,6 +16,7 @@ The dataset for this project contains Sentinel-2 covering the Brandenburg region
 
 - 20 classes (crop species) - 6 most prevelant used in analysis
 
+
 ## Dataset Preparation
 
 
@@ -28,8 +29,8 @@ Images are cropped into smaller patches with a sliding window approach:
 
 -  4D array for each sample - bands, time, width, height 
 
-
 processdata.py contains all the proprocessing code for the image data 
+
 
 ## Experiments
 The following experiments were conducted on these models during our research. 
@@ -39,7 +40,7 @@ The following experiments were conducted on these models during our research.
 
 
 
-## Getting Started 
+## Getting Started 
 
 To run one of the 3 models use the following command in the terminal
 
