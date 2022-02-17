@@ -11,12 +11,12 @@ class CNNVIT(nn.Module):
       """[summary]
 
       Args:
-          bands (int, optional): [description]. Defaults to 3.
-          labels (int, optional): [description]. Defaults to 6.
-          time (int, optional): [description]. Defaults to 6.
+          bands (int, optional): Number of image bands. Defaults to 3.
+          labels (int, optional): Number of class labels. Defaults to 6.
+          time (int, optional): Number of timepoints. Defaults to 6.
           device ([type], optional): [description]. Defaults to None.
-          d_model (int, optional): [description]. Defaults to 128.
-          encoder_layers (int, optional): [description]. Defaults to 1.
+          d_model (int, optional): Number of features for the encoder. Defaults to 128.
+          encoder_layers (int, optional): Number of encoder layers. Defaults to 1.
       """
       super(CNNVIT, self).__init__()
 

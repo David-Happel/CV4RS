@@ -18,7 +18,7 @@ from CNN_LSTM_V4 import CNN_LSTM as cnn_lstm
 
 
 #input shape : data format (sample, band, time, height, width)
-samples = 1
+samples = 5
 bands = 3
 times = 36
 height = 224
