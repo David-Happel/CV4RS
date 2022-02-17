@@ -71,66 +71,27 @@ Arguments:
 
 ```
 .
-├── CNN_LSTM_V4.py  # Lstm model
 ├── README.md 
 ├── agg_data.xlsx
-├── arg_parser.py
-├── baseline_simple.py
-├── data
+├── arg_parser.py # Arg parser from command line
+├── baseline_simple.py # 3D CNN model used as baseline
+├── transformer.py # 2DCNN-Transformer hybrid model
+├── CNN_LSTM_V4.py  # 2DCNN-LSTM hybrid model 
+├── data # Dataset(Not included in repo)
 │   ├── deepcrop
-│   │   └── tiles
-│   └── prepared
-├── dataset.py
-├── helper.py
-├── main.py
-├── main_cv.py
-├── processdata.py
-├── rasterized_polygons-2.ipynb
-├── report.py
-├── requirements.txt
-├── runs
-├── scripts
-│   ├── anastasia
-│   │   └── a_lstm_6t15b.sh
-│   ├── david
-│   │   ├── lstm
-│   │   │   ├── lstm_36t15b1l.sh
-│   │   │   ├── lstm_36t15b2l.sh
-│   │   │   └── lstm_36t15b3l.sh
-│   │   ├── run_train.sh
-│   │   ├── timepoints
-│   │   │   ├── bl_12t15b.sh
-│   │   │   ├── bl_24t15b.sh
-│   │   │   ├── bl_36t15b.sh
-│   │   │   ├── bl_6t15b.sh
-│   │   │   ├── lstm_12t15b.sh
-│   │   │   ├── lstm_24t15b.sh
-│   │   │   ├── lstm_36t15b.sh
-│   │   │   ├── lstm_6t15b.sh
-│   │   │   ├── trans_12t15b.sh
-│   │   │   ├── trans_24t15b.sh
-│   │   │   ├── trans_36t15b.sh
-│   │   │   └── trans_6t15b.sh
-│   │   └── trans
-│   │       ├── trans_36t15b1l.sh
-│   │       ├── trans_36t15b2l.sh
-│   │       ├── trans_36t15b3l.sh
-│   │       ├── trans_36t15b4l.sh
-│   │       └── trans_36t15b8l.sh
-│   └── stephen
-│       └── ste_trans_6t15b.sh
-├── test.py
-├── train.py
-└── transformer.py
+│   │   └── tiles # Raw data before preprocessing
+│   └── prepared  # Processed data tiles 
+├── dataset.py # Dataset class 
+├── helper.py # Helper functions
+├── main.py # Core code - where models are trained and tested 
+├── main_cv.py # Main with cross validation 
+├── processdata.py # Class for data proprocessing
+├── report.py # Class for reporting 
+├── requirements.txt # Requirements
+├── runs # Directory where data for tensorboard saved
+├── scripts # bash scripts for running different types of experiments
+└── test.py # testing models before training
 ```
-
-
-
-
-
-
-
-
 
 
 
