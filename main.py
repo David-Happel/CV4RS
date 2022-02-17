@@ -93,10 +93,14 @@ model_names = ["bl", "lstm", "trans"]
 models = [bl, cnn_lstm, trans]
 model_class = models[model_names.index(model_name)]
 
+bands = args.bands or "GRN,NIR,RED"
+print(f'Bands: {bands}')
+writer.add_text('bands', f'{bands}')
+bands = bands.split(",")
+
 #create band and times arrays
 t_step = int(36 / timepoints)
 times = range(0,36,t_step)
-bands = ["GRN", "NIR", "RED"]
 
 #train and test tiles
 train_tiles = ["X0066_Y0041","X0067_Y0041","X0067_Y0042","X0068_Y0042","X0068_Y0043","X0069_Y0041","X0069_Y0045","X0070_Y0040","X0070_Y0045", "X0071_Y0043", "X0071_Y0045", "X0071_Y0040"]
@@ -132,7 +136,7 @@ def main():
     # data format (sample, band, time, height, width)
 
     print("Loading data")
-    dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples)
+    dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=data_transform, t_samples=t_samples, bands=bands)
 
     # Select a random subset of the dataset to be validation data
     val_split = 0.2
