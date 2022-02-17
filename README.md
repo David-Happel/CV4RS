@@ -1,5 +1,4 @@
 
-
 # Crop Classification from Sentinel-2 Time Series Data
 
 ## Overview 
@@ -9,12 +8,12 @@ This repository contains code relating to the 'Project Computer Vision for Remot
 The dataset for this project contains Sentinel-2 covering the Brandenburg region, Germany. 
 
 8 spectral bands of different spatial resolution
-- 10m: GRN, RED, NIR
-- 20m: RE (3x), SW (2x)
-- Temporal resolution: sample every 10 days 
+- **10m:** GRN, RED, NIR
+- **20m:** RE (3x), SW (2x)
+- **Temporal resolution:** sample every 10 days 
 - 36 time frames across 1 year 
 
-- 20 classes (crop species) - 6 most prevelant used in analysis
+- **20 classes (crop species)** - 6 most prevelant used in analysis
 
 
 ## Dataset Preparation
@@ -30,6 +29,15 @@ Images are cropped into smaller patches with a sliding window approach:
 -  4D array for each sample - bands, time, width, height 
 
 processdata.py contains all the proprocessing code for the image data 
+
+
+## Models 
+
+### 3D-CNN 
+
+### 2DCNN-LSTM
+
+### 2DCNN-Transformer
 
 
 ## Experiments
@@ -49,13 +57,81 @@ python main.py --samples 5 --epochs 2 --batch_size 5  --timepoints 6 --model bl 
 ```
 
 Arguments: 
-- Samples: if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
-- Epochs: how many epochs to train the model on. Where one epoch is the full set of data
-- Batch Size: Specify the batch size to be used in training 
-- Timepoints: The number of temporal features to use. Max is 36 
-- Model: The model to be trained (bl, trans, lstm)
-- name: the name of the output run file. Can be imported into tensorboard later 
-- --no_process_data: Prevents the data being preprocessed. Leave this out the first time you run a model. 
+- **Samples** if you want to limit the numebr of samples the model is trained on you can specify that here. Leave empty for full dataset 
+- **Epochs** how many epochs to train the model on. Where one epoch is the full set of data
+- **Batch Size:** Specify the batch size to be used in training 
+- **Timepoints:** The number of temporal features to use. Max is 36 
+- **Model:** The model to be trained (bl, trans, lstm)
+- **name:** the name of the output run file. Can be imported into tensorboard later 
+- **--no_process_data:** Prevents the data being preprocessed. Leave this out the first time you run a model. 
+
+
+
+## Repo Structure
+
+.
+├── CNN_LSTM_V4.py  Lstm model
+├── README.md 
+├── agg_data.xlsx
+├── arg_parser.py
+├── baseline_simple.py
+├── data
+│   ├── deepcrop
+│   │   └── tiles
+│   └── prepared
+├── dataset.py
+├── helper.py
+├── main.py
+├── main_cv.py
+├── processdata.py
+├── rasterized_polygons-2.ipynb
+├── report.py
+├── requirements.txt
+├── runs
+├── scripts
+│   ├── anastasia
+│   │   └── a_lstm_6t15b.sh
+│   ├── david
+│   │   ├── lstm
+│   │   │   ├── lstm_36t15b1l.sh
+│   │   │   ├── lstm_36t15b2l.sh
+│   │   │   └── lstm_36t15b3l.sh
+│   │   ├── run_train.sh
+│   │   ├── timepoints
+│   │   │   ├── bl_12t15b.sh
+│   │   │   ├── bl_24t15b.sh
+│   │   │   ├── bl_36t15b.sh
+│   │   │   ├── bl_6t15b.sh
+│   │   │   ├── lstm_12t15b.sh
+│   │   │   ├── lstm_24t15b.sh
+│   │   │   ├── lstm_36t15b.sh
+│   │   │   ├── lstm_6t15b.sh
+│   │   │   ├── trans_12t15b.sh
+│   │   │   ├── trans_24t15b.sh
+│   │   │   ├── trans_36t15b.sh
+│   │   │   └── trans_6t15b.sh
+│   │   └── trans
+│   │       ├── trans_36t15b1l.sh
+│   │       ├── trans_36t15b2l.sh
+│   │       ├── trans_36t15b3l.sh
+│   │       ├── trans_36t15b4l.sh
+│   │       └── trans_36t15b8l.sh
+│   └── stephen
+│       └── ste_trans_6t15b.sh
+├── test.py
+├── train.py
+└── transformer.py
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## HPC getting started
