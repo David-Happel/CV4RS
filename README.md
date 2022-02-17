@@ -2,7 +2,7 @@
 # Crop Classification from Sentinel-2 Time Series Data
 
 ## Overview 
-This repository contains code relating to the 'Project Computer Vision for Remote Sensing' course at Technische Universität Berlin. This project involved researching state of the art techniques for classifying crops from satellite imagery. Three different types of architechtures were investigated: a 3-D CNN, a 2DCNN-LSTM hybrid model and a 2DCNN-Transformer hybrid model. 
+This repository contains code relating to the 'Project Computer Vision for Remote Sensing' course at Technische Universität Berlin. This project involved researching state of the art techniques for classifying crops from satellite imagery. Three different types of architechtures were investigated: a 3-D CNN (Baseline Model), a 2DCNN-LSTM hybrid model and a 2DCNN-Transformer hybrid model. 
 
 ## Data 
 The dataset for this project contains Sentinel-2 covering the Brandenburg region, Germany. 
@@ -17,8 +17,6 @@ The dataset for this project contains Sentinel-2 covering the Brandenburg region
 
 
 ## Dataset Preparation
-
-
 - 3000x3000 pixel images
 
 Images are cropped into smaller patches with a sliding window approach: 
@@ -33,7 +31,7 @@ processdata.py contains all the proprocessing code for the image data
 
 ## Models 
 
-#### 3D-CNN 
+#### 3D-CNN (Baseline)
 
 #### 2DCNN-LSTM
 
@@ -49,6 +47,11 @@ The following experiments were conducted on these models during our research.
 
 
 ## Getting Started 
+
+#### Cloning Repo 
+```
+git clone https://github.com/David-Happel/CV4RS.git
+```
 
 
 #### Installing requirements 
