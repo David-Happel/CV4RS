@@ -125,5 +125,3 @@ class Normalise(object):
             t.sub_(m).div_(s)
         return (data, labels)
     
-
-        

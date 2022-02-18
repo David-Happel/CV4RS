@@ -143,30 +143,32 @@ def hamming_loss(y_true, y_pred):
     
     return hl_num/hl_den
 
-
-
 def get_mean_std(times, bands, batch_size = 1000):
-    """Get the mean and stdev of the different image bands
-    Args:
-        times (list): timepoints to get mean from 
-        batch_size (int, optional): batch size for dataloader. Defaults to 1000.
+    #     """Get the mean and stdev of the different image bands
+    #     Args:
+    #         times (list): timepoints to get mean from 
+    #         batch_size (int, optional): batch size for dataloader. Defaults to 1000.
 
-    Returns:
-        mean (list): list of band means
-        stdev (list): list of band stdevs
-    """
-
+    #     Returns:
+    #         mean (list): list of band means
+    #         stdev (list): list of band stdevs
+    #     """
     train_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/train", times=times, transform=ToTensor(), bands=bands)
     loader = DataLoader(train_dataset, batch_size=batch_size)
+    nimages = 0
+    mean = 0.
+    std = 0.
+    for batch, _ in loader:
+        # Rearrange batch to be the shape of [B, C, T * W * H]
+        batch = batch.view(batch.size(0), batch.size(1), -1)
+        # Update total number of images
+        nimages += batch.size(0)
+        # Compute mean and std here
+        mean += batch.mean(2).sum(0) 
+        std += batch.std(2).sum(0)
 
-    ch_sum, ch_sqr_sum, n_batch = 0, 0, 0
-    for batch in loader:
-        print("-")
-        data, labels = batch
-        ch_sum += torch.mean(data, dim = [0, 2, 3, 4])
-        ch_sqr_sum += torch.mean(data**2, dim = [0, 2, 3, 4])
-        n_batch += 1
-    
-    mean = ch_sum/n_batch
-    std = (ch_sqr_sum/n_batch - mean*2)*0.5
-    return mean, std
+    # Final step
+    mean /= nimages
+    std /= nimages
+
+    return mean,std

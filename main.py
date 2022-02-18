@@ -121,8 +121,8 @@ def main():
 
     #Data Tranformations
     #mean and stdev - use helper function to re-calculate
-    means = [ 736.2289, 2657.3914,  748.3498, 1886.2126, 1231.7987, 2381.1394]
-    stds = [ 340017.6875, 3903396.5000,  403981.5000, 2088645.7500, 1017907.5000, 3169651.0000]
+    means = [ 736.2286, 2657.3906,  748.3499, 1886.2131, 1231.7983, 2381.1399]
+    stds = [291.3086, 761.6652, 410.7529, 658.0591, 605.7562, 722.4249]
     mean_bands = ["GRN", "NIR", "RED", "SW1", "SW2", "RE3"]
     mean = []
     std = []
@@ -219,13 +219,12 @@ def main():
     print("===== TESTING ======================")
     #Actual test performance
     # Load Testing Data
-    test_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/test", times=times, transform=data_transform, t_samples=t_samples)
+    test_dataset = DeepCropDataset(csv_file="labels.csv", root_dir="data/prepared/test", times=times, transform=data_transform, t_samples=t_samples, bands=bands)
     test_batches = DataLoader(
                         test_dataset,
                         batch_size=batch_size)
 
-
-    #TODO load the best model
+    model.load_state_dict(t.load(save_path))
 
     # Test model on testing data
     test_score, _ = predict(model, test_batches, device=device, criterion=criterion)
