@@ -176,11 +176,11 @@ def main():
 
     # Define data loaders for training and testing data in this fold
     train_batches = DataLoader(
-                    train_set, 
-                    batch_size=batch_size)
+                train_set, 
+                batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42), drop_last=True)
     val_batches = DataLoader(
-                    val_set,
-                    batch_size=batch_size)
+                val_set,
+                batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42), drop_last=True)
 
     train_scores = np.empty((epochs, 45))
     val_scores =  np.empty((epochs, 45))
@@ -189,10 +189,10 @@ def main():
     best_f1 = 0
     for epoch in range(epochs):  # loop over the dataset multiple times
         print(f'---- EPOCH: {epoch+1} -------------------------------')
+
         # train epoch
         train_score, train_score_names = train(model, train_batches, device=device, optimizer=optimizer, criterion=criterion)
         train_scores[epoch] = train_score
-        
         score_names = train_score_names
 
         # Val epoch
