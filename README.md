@@ -49,7 +49,7 @@ Several metrics are collected, including f1 score, precision, recall, Hamming lo
 
 ## Tensorboard
 
-To view and visualsie the performance of the models, tensorboard can be used. When a model is trained information realted to it is automatically exported to the '/runs' folder.
+To view and visualise the performance of the models, tensorboard can be used. When a model is trained information realted to it is automatically exported to the '/runs' folder.
 
 Run the following command to launch tensorboard and then navigate to http://localhost:6006/ to view
 
