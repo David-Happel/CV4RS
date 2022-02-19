@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/users/d/davidhappel/CV4RS/trans_36t15b1l.out
+#SBATCH -o /home/users/d/davidhappel/CV4RS/trans_36t12b1l.out
 #SBATCH --chdir=/home/users/d/davidhappel/CV4RS/
 #SBATCH -J CV4RS
 #SBATCH --ntasks=2
@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py --epochs 20 --batch_size 12 --timepoints 36 --model trans --trans_layers 1 --name trans_36t15b1l --no_process_data
+python3 main.py --epochs 20 --batch_size 12 --timepoints 36 --model trans --trans_layers 1 --name trans_36t12b1l --no_process_data
