@@ -16,4 +16,4 @@ echo "Loading cuda..."
 module load nvidia/cuda/10.1
 
 echo "Executing..."
-python3 main.py --epochs 10 --batch_size 12 --timepoints 36 --model trans --trans_layers 1 --name trans_36t12b1lGRN,NIR,RED,SW1 --no_process_data --bands GRN,NIR,RED,SW1
+python3 main.py --epochs 20 --batch_size 12 --timepoints 36 --model trans --trans_layers 1 --name trans_36t12b1lGRN,NIR,RED,SW1 --no_process_data --bands GRN,NIR,RED,SW1
