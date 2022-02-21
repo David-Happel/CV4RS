@@ -12,8 +12,8 @@ import rasterio
 # labels = [10, 31, 32, 33, 34, 41, 42, 43, 50, 60, 70, 80, 91, 92, 100, 120, 130, 140, 181, 182]
 
 # Selected Labels
-label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Winter Rapeseed', 'Maize other']
-labels = [10, 31, 32, 33, 50, 91]
+label_names = ['Grassland', 'Winter Wheat', 'Winter Rye', 'Winter Barley', 'Other Winter Cereals', 'Spring Oat', 'Winter Rapeseed', 'Maize other', 'Legume']
+labels = [10, 31, 32, 33, 34, 42, 50, 91, 60]
 
 class DeepCropDataset(Dataset):
     def __init__(self, csv_file, root_dir, bands=["GRN", "NIR", "RED"], times=range(0,36,1), transform=None, t_samples=None):
