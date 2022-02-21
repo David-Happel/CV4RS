@@ -180,7 +180,7 @@ def main():
                 batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42), drop_last=True)
     val_batches = DataLoader(
                 val_set,
-                batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42), drop_last=True)
+                batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42))
 
     train_scores = np.empty((epochs, 57))
     val_scores =  np.empty((epochs, 57))
