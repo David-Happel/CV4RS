@@ -137,6 +137,7 @@ dmypy.json
 reports/report*
 runs
 hpc_runs
+hpc_runs_old
 complexity
 
 plots

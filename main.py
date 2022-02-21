@@ -182,8 +182,8 @@ def main():
                 val_set,
                 batch_size=batch_size, shuffle=True, generator=t.Generator().manual_seed(42), drop_last=True)
 
-    train_scores = np.empty((epochs, 45))
-    val_scores =  np.empty((epochs, 45))
+    train_scores = np.empty((epochs, 57))
+    val_scores =  np.empty((epochs, 57))
     score_names = None
     saved_epoch = 0 #CHECK USEFULNESS
     best_f1 = 0
