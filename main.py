@@ -322,7 +322,7 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
         y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
         
     scores = dict({"loss": avg_loss / len(batches)})
-    return evaluation(y_pred, y_true, initial=scores)
+    return evaluation(y_true, y_pred, initial=scores)
 
 #Make predictions
 def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
@@ -364,7 +364,7 @@ def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1
             y_true =  np.append(y_true, labels.detach().to('cpu'), axis=0)
             
     scores = dict({"loss": avg_loss / len(batches)})
-    return evaluation(y_pred, y_true, initial=scores)
+    return evaluation(y_true, y_pred, initial=scores)
 
 if __name__ == "__main__":
     start_time = time.time()
