@@ -94,6 +94,8 @@ Arguments:
 - Timepoints: The number of temporal features to use. Max is 36
 - Model: The model to be trained (bl, trans, lstm)
 - name: the name of the output run file. Can be imported into tensorboard later
+- lstm_layers: the amount of lstm layers if using lstm model.
+- trans_layers: the amount of transformer layers if using lstm model.
 - --no_process_data: Prevents the data being preprocessed. Leave this out the first time you run a model.
 
 ## Repo Structure
