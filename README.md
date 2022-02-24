@@ -37,15 +37,15 @@ processdata.py contains all the proprocessing code for the image data
 
 #### 2DCNN (Common)
 
-![alt text](/images/2DCNN.png =x250)
+![alt text](/images/2DCNN.png)
 
 #### 2DCNN-LSTM
 
-![alt text](/images/LSTM.png =x250)
+![alt text](/images/LSTM.png)
 
 #### 2DCNN-Transformer
 
-![alt text](/images/Trans.png =x250)
+![alt text](/images/Trans.png)
 
 
 
