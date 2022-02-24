@@ -243,12 +243,13 @@ def main():
 
 
 def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"], test_tiles = ["X0071_Y0042"]):
-    """[summary]
+    """cuts the listed data tiles into patches smaller patches of 244x240 px, with a stride of 200px, leaving overlap between neighbouring patches.
+    the patches end up into data/prepared.
 
     Args:
-        dl ([type]): [description]
-        train_tiles (list, optional): [description]. Defaults to ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"].
-        test_tiles (list, optional): [description]. Defaults to ["X0071_Y0042"].
+        dl ([DataLoader]): The initialized dataload to use
+        train_tiles (list, optional): The list of tiles to use for training data. Defaults to ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040"].
+        test_tiles (list, optional): The list of tiles to use for testing data. Defaults to ["X0071_Y0042"].
     """
     print("Pre-processing data")
     #process training data 
@@ -257,32 +258,31 @@ def pre_processing(dl, train_tiles = ["X0071_Y0043", "X0071_Y0045", "X0071_Y0040
     dl.process_tiles(test_tiles, out_dir='data/prepared/test/')
 
 def calc_class_weights(dataset):
-    """[summary]
+    """Returns the classweights for the dataset
 
     Args:
-        dataset ([type]): [description]
+        dataset (DeepCropDataset): Initialised dataset object
 
     Returns:
-        [type]: [description]
+        list: Calculated class weigths
     """
     class_weights = len(dataset) / np.array(dataset.label_counts)
-    class_weights[class_weights == float('inf')] = 1
+    class_weights[class_weights == float('inf')] = 1 # Weight set to 1 if label is not in data 
     return class_weights
 
 ### Training Functions
-
 def train(model, batches, device="cpu", optimizer = None, criterion = None):
-    """[summary]
+    """Training loop function
 
     Args:
-        model ([type]): [description]
-        batches ([type]): [description]
-        device (str, optional): [description]. Defaults to "cpu".
-        optimizer ([type], optional): [description]. Defaults to None.
-        criterion ([type], optional): [description]. Defaults to None.
+        model (Torch Model): initialized pytoch model
+        batches (DataLoader): dataloader object with batches
+        device (str, optional): device. Defaults to "cpu".
+        optimizer (torch.optim): optimizer used for training. Defaults to None.
+        criterion ((list, list) => float): loss function. Defaults to None.
 
     Returns:
-        [type]: [description]
+        (list, list): list of evaluation metrics for this training step, and the evaluation names
     """
     model.train()
 
@@ -326,16 +326,16 @@ def train(model, batches, device="cpu", optimizer = None, criterion = None):
 
 #Make predictions
 def predict(model, batches, device="cpu", criterion = None): #loss_test_fold, F1_test_Fold
-    """[summary]
+    """Predicting loop function
 
     Args:
-        model ([type]): [description]
-        batches ([type]): [description]
-        device (str, optional): [description]. Defaults to "cpu".
-        criterion ([type], optional): [description]. Defaults to None.
+        model (Torch Model): initialized pytoch model
+        batches (DataLoader): dataloader object with batches
+        device (str, optional): device. Defaults to "cpu".
+        criterion ((list, list) => float): loss function. Defaults to None.
 
     Returns:
-        [type]: [description]
+        (list, list): list of evaluation metrics for this training step, and the evaluation names
     """
 
     model.eval()

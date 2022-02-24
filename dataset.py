@@ -82,28 +82,31 @@ class DeepCropDataset(Dataset):
         return sample
 
 class ToTensor(object):
-    """Convert ndarrays in sample to Tensors."""
+    """Dataset Transform: Convert ndarrays in sample to Tensors. 
+    """
 
     def __call__(self, sample):
-        """[summary]
+        """Convert ndarrays in sample to Tensors.
 
         Args:
-            sample ([type]): [description]
+            sample (np.array, np.array): sample and labels for sample
 
         Returns:
-            [type]: [description]
+            sample (Tensor, Tensor): sample and labels for sample as tensor
         """
         data, labels = sample
         return torch.from_numpy(data).float(), torch.from_numpy(labels).float()
 
 
 class Normalise(object): 
+    """Dataset Transform: "Normalise values for each band."""
+
     def __init__(self, mean, std):
         """Normalise values for each band
 
         Args:
-            mean (list): mean value of band
-            std (list): standard deviation
+            mean (list): mean value of bands
+            std (list): standard deviation of bands
         """
         self.mean = mean
         self.std = std
@@ -111,13 +114,14 @@ class Normalise(object):
 
 
     def __call__(self, sample):        
-        """[summary]
+        """Normalise values for each band
 
         Args:
-            sample ([type]): [description]
+            sample (Tensor, Tensor): sample and labels for sample as tensor
 
         Returns:
-            [type]: [description]
+            sample (Tensor, Tensor): sample and labels for sample normalized
+
         """
         data, labels = sample
         # For every channel, subtract the mean, and divide by the standard deviation
