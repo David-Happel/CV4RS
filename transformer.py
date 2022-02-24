@@ -148,7 +148,7 @@ class CNNVIT(nn.Module):
 class PositionalEncoding(nn.Module):
 
    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-      """Initialise positional encoder 
+      """Initialise positional encoder [1] taken from Pytorch Transformer Tutorial
 
       Args:
          d_model (int): model dimension (# features at each timepoint)
