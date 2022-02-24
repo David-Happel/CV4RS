@@ -33,7 +33,7 @@ processdata.py contains all the proprocessing code for the image data
 
 #### 3D-CNN (Baseline)
 
-![alt text](https://github.com/David-Happel/CV4RS/images/2DCNN.jpg?raw=true)
+![alt text](https://github.com/David-Happel/CV4RS/images/2DCNN.png?raw=true)
 
 #### 2DCNN (Common)
 
