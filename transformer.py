@@ -78,8 +78,7 @@ class CNNVIT(nn.Module):
          activation='relu' # ReLU: avoid saturation/tame gradient/reduce compute time
       )
       
-      # I'm using 4 instead of the 6 identical stacked encoder layrs used in Attention is All You Need paper
-      # Complete transformer block contains 4 full transformer encoder layers (each w/ multihead self-attention+feedforward)
+      # Complete transformer block contains identical N full transformer encoder layers (each w/ multihead self-attention+feedforward)
       self.transformer_encoder = nn.TransformerEncoder(transformer_layer, num_layers=self.encoder_layers)
 
       #data format (sample x band x height x width)
@@ -118,17 +117,13 @@ class CNNVIT(nn.Module):
          out = self.conv1(x[:, :, t, :, :])
          out = self.conv2(out)
          out = self.conv3(out)
-   
-         #log output dimension
-         #print("Set Global Pooling to {}".format(out.size()[2]))
          out = self.global_max_pool(out)
-         #print(out.size())
          cnn_seq.append(out)
 
+      #stack cnn outputs 
       cnn_seq = torch.stack(cnn_seq, dim=0)
-      #print(cnn_seq.size())
+      #reduce dimensionaility
       out = torch.squeeze(cnn_seq)
-      #print(cnn_seq.size())
 
       #TRANSFORMER MODULE
       #positional encoder 
@@ -177,5 +172,5 @@ class PositionalEncoding(nn.Module):
 """
 References
 ----------
-[1] 
+[1] https://pytorch.org/tutorials/beginner/transformer_tutorial.html
 """
